@@ -23,7 +23,7 @@ Compare ten major IOUs across four dimensions — annual profits and profit grow
 
 ## Final Deliverable
 
-The primary output is `outputs/dd-mm-yyyy-united-ratepayers-utility-summary.csv` with one row per utility:
+The primary output is a summary CSV with one row per utility:
 
 | Column | Description |
 |--------|-------------|
@@ -40,18 +40,17 @@ The primary output is `outputs/dd-mm-yyyy-united-ratepayers-utility-summary.csv`
 
 ## How to Run
 
-Analysis scripts will be added in `R/` (`01_*.R`, `02_*.R`, …). See `CLAUDE.md` for current status.
+See `CLAUDE.md` for current status.
 
 ## Outputs
 
-- `outputs/dd-mm-yyyy-united-ratepayers-utility-summary.csv` — primary deliverable: one row per utility with all comparative metrics
-- `plots/` — supporting visualizations, if any
+- Summary CSV — primary deliverable: one row per utility with all comparative metrics
+- Supporting visualizations, if any
 
 ## Data Sources
 
 ### CEO Compensation
 **Source:** Energy and Policy Institute (EPI) — [*Utility Executive Compensation 2025*](https://energyandpolicy.org/executive-compensation/)  
-**File:** `../../Data/epi/EPI_Exec_Comp_Data_2025.csv`  
 **Coverage:** 8 of 10 target utilities have data.
 
 | Utility | Data Available | Notes |
@@ -69,7 +68,6 @@ Analysis scripts will be added in `R/` (`01_*.R`, `02_*.R`, …). See `CLAUDE.md
 
 ### Utility Profits
 **Source:** Energy and Policy Institute (EPI) — [*Utility Profit Report*](https://energyandpolicy.org/utility-profit-report/)  
-**File:** `../../Data/epi/2021 - 2025 Utility Profits (Make a copy to edit) _ Last Updated 5_8_26.xlsx` (sheet: `Data`)  
 **Coverage:** 9 of 10 target utilities present in EPI data; 8 of 10 have complete 2021/2024/2025 profit figures. El Paso Electric has no row (privately held since 2020). National Grid 2025 profit data is not available in EPI source (2021 and 2024 are present).
 
 | Utility | Match column | Subsidiaries summed | Notes |
@@ -87,8 +85,6 @@ Analysis scripts will be added in `R/` (`01_*.R`, `02_*.R`, …). See `CLAUDE.md
 
 ### Shutoffs for Non-Payment (Disconnections)
 **Source:** Energy Justice Lab — [*Utility Disconnection Dashboard*](https://utilitydisconnections.org/)  
-**File:** `../../Cleaned_Data/ejl_disconnection_dashboard/16-03-2026-ejl-disconnection-dashboard.csv`  
-**Script:** `R/03_ejl_disconnections.R`  
 **Coverage:** 44 states + D.C.; monthly granularity 1996–2025.
 
 EJL disconnection data covers shutoffs for non-payment specifically.
