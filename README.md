@@ -50,7 +50,7 @@ Analysis scripts will be added in `R/` (`01_*.R`, `02_*.R`, …). See `CLAUDE.md
 ## Data Sources
 
 ### CEO Compensation
-**Source:** Energy and Policy Institute (EPI) — *Utility Executive Compensation 2025*  
+**Source:** Energy and Policy Institute (EPI) — [*Utility Executive Compensation 2025*](https://energyandpolicy.org/executive-compensation/)  
 **File:** `../../Data/epi/EPI_Exec_Comp_Data_2025.csv`  
 **Coverage:** 8 of 10 target utilities have data.
 
