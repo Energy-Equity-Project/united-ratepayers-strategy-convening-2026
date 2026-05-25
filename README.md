@@ -85,6 +85,31 @@ Analysis scripts will be added in `R/` (`01_*.R`, `02_*.R`, …). See `CLAUDE.md
 | El Paso Electric | — | **No match** | Not in EPI dataset — privately held since 2020 (IIF acquisition) |
 | Southern Company | Parent Company | Alabama Power; Georgia Power; Mississippi Power | 3 subs |
 
+### Shutoffs for Non-Payment (Disconnections)
+**Source:** Energy Justice Lab — [*Utility Disconnection Dashboard*](https://utilitydisconnections.org/)  
+**File:** `../../Cleaned_Data/ejl_disconnection_dashboard/16-03-2026-ejl-disconnection-dashboard.csv`  
+**Script:** `R/03_ejl_disconnections.R`  
+**Coverage:** 44 states + D.C.; monthly granularity 1996–2025.
+
+EJL disconnection data covers shutoffs for non-payment specifically.
+
+**Year selection:** For each matched operating utility / state / service-type combination, the script uses the most recent calendar year for which all 12 months are reported. Where no such year exists, the combination is excluded and logged as a gap.
+
+**Double-counting prevention:** EJL contains both separate Electric and Gas rows AND a combined "Electric and Gas Customers" row for PECO (Exelon) and Xcel Energy (CO). The combined rows are excluded globally before matching to prevent double-counting. Separate Electric and Gas totals are reported instead.
+
+| Utility | EJL Match | Subsidiaries / States | Gaps |
+|---------|-----------|----------------------|------|
+| American Electric Power | Substring: `AEP`, `Appalachian Power`, `Indiana Michigan`, `Kentucky Power`, `Ohio Power` | AEP Texas (TX), Appalachian Power (VA), Indiana Michigan Power (IN/MI), Kentucky Power (KY), Ohio Power (OH) | SWEPCO and PSO absent from EJL |
+| ComEd | Exact: `Commonwealth Edison` | Commonwealth Edison (IL) | — |
+| Duke Energy | Substring: `Duke Energy` | Carolinas (NC/SC), Florida (FL), Indiana (IN), Kentucky (KY), Ohio (OH), Progress (NC/SC) | — |
+| Exelon | Exact: BGE, Delmarva Power, PECO Electric, PECO Gas | Baltimore Gas and Electric (MD), Delmarva Power (MD), PECO (PA) | Pepco and Atlantic City Electric absent from EJL |
+| National Grid | Exact: MA Electric, Nantucket, Niagara Mohawk, KeySpan KEDLI/KEDNY, Brooklyn Union Gas | Across MA and NY | — |
+| PG&E | Exact: `Pacific Gas & Electric Co` | Pacific Gas & Electric (CA) | — |
+| Xcel Energy | Substring: `Xcel Energy`, `Northern States Power`, `Southwestern Public Service` | Xcel Energy (MN/CO), NSP (WI/MI/ND/SD), SPS (NM) | — |
+| Arizona Public Service (APS) | Exact: `Arizona Public Service Company` | Arizona Public Service (AZ) | — |
+| El Paso Electric | Substring: `El Paso Electric` | El Paso Electric Company (NM) | TX data absent from EJL |
+| Southern Company | Exact: `Georgia Power`, `Alabama Power`, `Mississippi Power` | Georgia Power (GA) | Alabama Power and Mississippi Power absent from EJL |
+
 ## Notes & Caveats
 
 - **ComEd/Exelon overlap**: ComEd (row 2) is an operating subsidiary of Exelon (row 4). Financial metrics (net income, CEO pay) are reported at the Exelon holding-company level; energy burden and shutoff data are at the ComEd operating level. Both rows are retained to reflect the analysis scope.
