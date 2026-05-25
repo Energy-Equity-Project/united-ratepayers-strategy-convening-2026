@@ -47,6 +47,26 @@ Analysis scripts will be added in `R/` (`01_*.R`, `02_*.R`, …). See `CLAUDE.md
 - `outputs/dd-mm-yyyy-united-ratepayers-utility-summary.csv` — primary deliverable: one row per utility with all comparative metrics
 - `plots/` — supporting visualizations, if any
 
+## Data Sources
+
+### CEO Compensation
+**Source:** Energy and Policy Institute (EPI) — *Utility Executive Compensation 2025*  
+**File:** `../../Data/epi/EPI_Exec_Comp_Data_2025.csv`  
+**Coverage:** 8 of 10 target utilities have data.
+
+| Utility | Data Available | Notes |
+|---------|---------------|-------|
+| American Electric Power (AEP) | Yes | Direct match |
+| ComEd | Yes | Matched at Exelon holding-company level |
+| Duke Energy | Yes | CEO transition in 2025; Harry Sideris (incumbent) used |
+| Exelon | Yes | Direct match |
+| National Grid | **No** | UK-based parent; US subsidiaries not in EPI dataset |
+| PG&E | Yes | Direct match (`PG&E Corporation`) |
+| Xcel Energy | Yes | Direct match |
+| Arizona Public Service (APS) | Yes | Matched at Pinnacle West holding-company level; CEO transition in 2025, Theodore Geisler (incumbent) used |
+| El Paso Electric | **No** | Privately held since 2020 (IIF acquisition); not in EPI dataset |
+| Southern Company | Yes | Direct match |
+
 ## Notes & Caveats
 
 - **ComEd/Exelon overlap**: ComEd (row 2) is an operating subsidiary of Exelon (row 4). Financial metrics (net income, CEO pay) are reported at the Exelon holding-company level; energy burden and shutoff data are at the ComEd operating level. Both rows are retained to reflect the analysis scope.
