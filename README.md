@@ -67,9 +67,33 @@ Analysis scripts will be added in `R/` (`01_*.R`, `02_*.R`, …). See `CLAUDE.md
 | El Paso Electric | **No** | Privately held since 2020 (IIF acquisition); not in EPI dataset |
 | Southern Company | Yes | Direct match |
 
+### Utility Profits
+**Source:** Energy and Policy Institute (EPI) — [*Utility Profit Report*](https://energyandpolicy.org/utility-profit-report/)  
+**File:** `../../Data/epi/2021 - 2025 Utility Profits (Make a copy to edit) _ Last Updated 5_8_26.xlsx` (sheet: `Data`)  
+**Coverage:** 9 of 10 target utilities present in EPI data; 8 of 10 have complete 2021/2024/2025 profit figures. El Paso Electric has no row (privately held since 2020). National Grid 2025 profit data is not available in EPI source (2021 and 2024 are present).
+
+| Utility | Match column | Subsidiaries summed | Notes |
+|---------|-------------|---------------------|-------|
+| American Electric Power | Parent Company | AEP Indiana/Michigan; AEP Texas; Appalachian Power; Kentucky Power; Ohio Power Co.; Public Service Co. of OK; SWEPCO | 7 subs |
+| ComEd | Utility | ComEd | Operating-utility row; distinct from Exelon total |
+| Duke Energy | Utility (substring) | Duke Energy Carolinas; Duke Energy Florida; Duke Energy Indiana; Duke Energy Ohio/Kentucky; Duke Energy Progress | Special case — Parent Company inconsistent in EPI source |
+| Exelon | Parent Company | Atlantic City; BGE; ComEd; Delmarva; PECO; Potomac Electric Power (PEPCO) | 6 subs (ComEd overlaps with ComEd target by design) |
+| National Grid | Parent Company | Massachusetts Electric Co.; Nantucket Electric; Niagara Mohawk | **2025 profit data not available in EPI source** — 2021 ($438.6M) and 2024 ($443.6M) present |
+| PG&E | Parent Company | Pacific Gas & Electric Co. | 2021 profit ($138M) low due to post-bankruptcy recovery; 2021→2025 ratio (~22×) is technically correct but context-dependent |
+| Xcel Energy | Utility (substring) | Xcel (electric subsidiaries) | EPI reports Xcel subs as single aggregated row |
+| Arizona Public Service (APS) | Utility | Arizona Public Service Co. (APS) | Operating-utility row; distinct from Pinnacle West total |
+| El Paso Electric | — | **No match** | Not in EPI dataset — privately held since 2020 (IIF acquisition) |
+| Southern Company | Parent Company | Alabama Power; Georgia Power; Mississippi Power | 3 subs |
+
 ## Notes & Caveats
 
 - **ComEd/Exelon overlap**: ComEd (row 2) is an operating subsidiary of Exelon (row 4). Financial metrics (net income, CEO pay) are reported at the Exelon holding-company level; energy burden and shutoff data are at the ComEd operating level. Both rows are retained to reflect the analysis scope.
 - **El Paso Electric**: Privately held since 2020 (acquired by IIF). Public financial disclosures are limited; profit and executive compensation data may be unavailable or incomplete.
 - **APS/Pinnacle West**: Arizona Public Service Company is an operating subsidiary of Pinnacle West Capital. Financial metrics are reported at the Pinnacle West level.
 - **Xcel Energy**: Xcel is the parent holding company of PSCo (Colorado), NSP-MN (Minnesota/North Dakota/South Dakota), and SPS (Texas/New Mexico). Energy burden analysis may reference operating subsidiaries rather than the consolidated parent.
+- **Profits — Duke Energy aggregation**: Duke Energy's `Parent Company` column is inconsistent in the EPI source (only "Duke Energy Florida" carries it). Profits are aggregated by matching `Utility` column substring `"Duke Energy"` across all Duke subs.
+- **Profits — ComEd vs. Exelon**: The profits script uses ComEd's own operating-utility row (not Exelon's parent total) for the ComEd target, while the exec-comp script uses Exelon's holding-company row for both. This divergence is intentional and reflects different reporting levels.
+- **Profits — APS vs. Pinnacle West**: Same logic as ComEd/Exelon — the profits script uses APS's operating-utility row; the exec-comp script uses Pinnacle West's holding-company row.
+- **Profits — Xcel aggregation**: `Xcel Energy` does not appear as a value in the `Parent Company` column of the EPI profits data. Subsidiaries are matched by `Utility`-name substring across Northern States Power, Public Service Co. of Colorado, Southwestern Public Service, and any rows containing "Xcel".
+- **Profits — National Grid 2025 gap**: EPI does not report 2025 profit data for National Grid's US subsidiaries. 2021 ($438.6M) and 2024 ($443.6M) figures are available; `profit_2025_millions` and `profit_ratio_2024_2025` are NA for this utility.
+- **Profits — El Paso Electric gap**: El Paso Electric is not present in EPI's utility profits data. It has been privately held since 2020 (IIF acquisition) and does not file public financial disclosures.
