@@ -144,6 +144,51 @@ Known caveats from the audit:
 - **`STATE` field unreliable**: For AEP subsidiaries and both Northern States Power entries, `STATE` reflects the holding company's HQ state, not the service territory state. Use polygon geometry for state assignment in downstream analysis.
 - **Narragansett Electric (RI)**: National Grid sold Narragansett Electric to PPL in 2022; the shapefile (vintage Aug 2023) still lists National Grid as owner. Territory is attributed to National Grid with this caveat noted.
 
+### Census Tract Boundaries (2022 Cartographic Boundary)
+**Source:** U.S. Census Bureau — Cartographic Boundary Files, 1:500,000 resolution  
+**URL:** https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html  
+**Format:** ESRI Shapefile, nationwide  
+**Local path:** `Data/gis/census/cb_2022_us_tract_500k/`  
+**Script:** `R/06_utility_tract_crosswalk.R`
+
+Census tract boundary polygons used for centroid-in-polygon assignment of tracts to utility service territories. Each tract's geographic centroid is tested for containment within each operating subsidiary's HIFLD territory polygon.
+
+### DOE LEAD 2022 — Tract-Level Energy Burden Baseline
+**Source:** U.S. Department of Energy — Low-Income Energy Affordability Data (LEAD) Tool  
+**URL:** https://www.energy.gov/scep/slsc/low-income-energy-affordability-data-lead-tool  
+**Variables:** `avg_income`, `avg_electricity_cost`, `avg_gas_cost`, `avg_other_fuel_cost`, plus `hincp_valid_units`, `elep_valid_units`, `gasp_valid_units`, `fulp_valid_units` (per-component household counts used as weights)  
+**Geographic resolution:** Census tract × subpopulation (income band × tenure × building age × heating fuel)  
+**Temporal resolution:** 2022 (5-year ACS reference period)  
+**Coverage:** 34 target states  
+**Local path:** `Cleaned_Data/doe/lead/[state]-census_tract-lead-2022.csv` (one file per state)  
+**Script:** `R/07_burden_estimates_2024.R`
+
+Tract-level baseline energy burden data used as the 2022 starting point for forward-projection to 2024. Multiple subpopulation rows per tract are preserved to enable accurate weighted aggregation.
+
+### Residential Electricity Sales (EIA Form 861)
+**Source:** U.S. Energy Information Administration — Form EIA-861 (Annual Electric Power Industry Report)  
+**URL:** https://www.eia.gov/electricity/data/eia861/  
+**Variables:** `residential_revenue_usd`, `residential_customers` (combined to compute average annual residential bill = revenue ÷ customers)  
+**Geographic resolution:** Operating utility × state  
+**Temporal resolution:** Annual; 2022 and 2024 used  
+**Coverage:** 47 of 48 expected operating subsidiary × state combinations matched  
+**Local path:** `Cleaned_Data/eia/861/14-02-2026-eia-861-sales.csv`  
+**Script:** `R/07_burden_estimates_2024.R`
+
+Used to compute the 2022→2024 electricity-bill growth ratio per operating subsidiary × state. This ratio is applied multiplicatively to the DOE LEAD 2022 electricity cost baseline to project forward to 2024.
+
+### Residential Natural Gas Bills (EIA Form 176)
+**Source:** U.S. Energy Information Administration — Form EIA-176 (Annual Report of Natural and Supplemental Gas Supply and Disposition)  
+**URL:** https://www.eia.gov/naturalgas/ngqs/  
+**Variable:** `avg_annual_residential_nat_gas_bill`  
+**Geographic resolution:** State (no utility-level breakdown available)  
+**Temporal resolution:** Annual; 2022 and 2024 used  
+**Coverage:** 50 states + DC  
+**Local path:** `Cleaned_Data/eia/176/15-04-2026-eia-176-residential-natural-gas.csv`  
+**Script:** `R/07_burden_estimates_2024.R`
+
+Used to compute the 2022→2024 gas-bill growth ratio per state. Applied multiplicatively to the DOE LEAD 2022 gas cost baseline. Because EIA 176 has no utility-level breakdown, all tracts within a given state use the same gas growth ratio regardless of which utility serves them.
+
 ## Notes & Caveats
 
 - **ComEd/Exelon overlap**: ComEd (row 2) is an operating subsidiary of Exelon (row 4). Financial metrics (net income, CEO pay) are reported at the Exelon holding-company level; energy burden and shutoff data are at the ComEd operating level. Both rows are retained to reflect the analysis scope.
