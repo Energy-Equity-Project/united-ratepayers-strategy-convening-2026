@@ -114,6 +114,36 @@ EJL disconnection data covers shutoffs for non-payment specifically.
 | El Paso Electric | Substring: `El Paso Electric` | El Paso Electric Company (NM) | TX data absent from EJL |
 | Southern Company | Exact: `Georgia Power`, `Alabama Power`, `Mississippi Power` | Georgia Power (GA) | Alabama Power and Mississippi Power absent from EJL |
 
+### Electric Retail Service Territories (GIS)
+**Source:** Oak Ridge National Laboratory (ORNL) / U.S. Department of Energy (DOE), via HIFLD Open  
+**URL:** https://hifld-geoplatform.hub.arcgis.com/ (archived — repository deactivated August 26, 2025)  
+**Format:** ESRI Shapefile, 2,931 features, CRS: WGS 1984 Web Mercator Auxiliary Sphere (EPSG:3857)  
+**Local path:** `Data/gis/hflid_ornl/electric-retail-service-territories/`  
+**Script:** `R/05_territory_coverage.R`  
+**Output:** `outputs/<date>-territory-coverage-gap-report.md`
+
+Electric power retail service territory polygons representing areas serviced by electric utilities responsible for the retail sale of electric power to local customers. Used to spatially define service territories for energy burden calculations.
+
+**Coverage audit results** (run 2026-05-24): All 34 expected operating subsidiaries across the 10 target holding companies matched at least one territory polygon. No gaps.
+
+| Holding Co | Subsidiaries matched | Customers in shapefile |
+|---|---|---|
+| Duke Energy | 6/6 | 8,204,861 |
+| PG&E | 1/1 | 5,604,453 |
+| Exelon (excl. ComEd) | 5/5 | 5,060,114 |
+| ComEd | 1/1 | 4,111,175 |
+| Southern Company | 3/3 | 4,431,047 |
+| American Electric Power | 8/8 | 4,418,432 |
+| Xcel Energy | 4/4 | 3,761,046 |
+| National Grid | 4/4 | 3,579,978 |
+| Arizona Public Service | 1/1 | 1,344,359 |
+| El Paso Electric | 1/1 | 455,303 |
+
+Known caveats from the audit:
+- **AEP Texas customer count**: Both AEP Texas features have no customer count in the shapefile; will be sourced from EIA 861.
+- **`STATE` field unreliable**: For AEP subsidiaries and both Northern States Power entries, `STATE` reflects the holding company's HQ state, not the service territory state. Use polygon geometry for state assignment in downstream analysis.
+- **Narragansett Electric (RI)**: National Grid sold Narragansett Electric to PPL in 2022; the shapefile (vintage Aug 2023) still lists National Grid as owner. Territory is attributed to National Grid with this caveat noted.
+
 ## Notes & Caveats
 
 - **ComEd/Exelon overlap**: ComEd (row 2) is an operating subsidiary of Exelon (row 4). Financial metrics (net income, CEO pay) are reported at the Exelon holding-company level; energy burden and shutoff data are at the ComEd operating level. Both rows are retained to reflect the analysis scope.
