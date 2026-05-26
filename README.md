@@ -83,6 +83,14 @@ See `CLAUDE.md` for current status.
 | El Paso Electric | — | **No match** | Not in EPI dataset — privately held since 2020 (IIF acquisition) |
 | Southern Company | Parent Company | Alabama Power; Georgia Power; Mississippi Power | 3 subs |
 
+### Tract-Level Median Household Income
+**Source:** U.S. Census Bureau — American Community Survey (ACS) 5-year estimates, via the Census API  
+**Variable:** `B19013_001` — Median Household Income in the Past 12 Months (in inflation-adjusted dollars)  
+**Geographic resolution:** Census tract  
+**Temporal resolution:** 2022 ACS 5-year (2018–2022 reference period) and 2024 ACS 5-year (2020–2024 reference period)  
+**Coverage:** 34 states + DC — all jurisdictions where target IOU service territories are expected to operate, derived from the HIFLD territory coverage audit  
+**Output:** `Data/us_census/acs/{year}/tract/B19013_{state}.csv` — one file per state per year (68 files total); tidy format with columns `GEOID`, `NAME`, `variable`, `estimate`, `moe`
+
 ### Shutoffs for Non-Payment (Disconnections)
 **Source:** Energy Justice Lab — [*Utility Disconnection Dashboard*](https://utilitydisconnections.org/)  
 **Coverage:** 44 states + D.C.; monthly granularity 1996–2025.
