@@ -38,10 +38,6 @@ The primary output is a summary CSV with one row per utility:
 | `avg_energy_burden` | Mean residential energy burden (% of income) |
 | `pct_unaffordable_burden` | Share of customers above the affordability threshold |
 
-## How to Run
-
-See `CLAUDE.md` for current status.
-
 ## Outputs
 
 - Summary CSV — primary deliverable: one row per utility with all comparative metrics
