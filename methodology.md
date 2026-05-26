@@ -16,6 +16,8 @@ This document explains, in plain language, how the United Ratepayers 2026 compar
 
 4. **Shutoffs for non-payment.** The number of residential accounts disconnected for non-payment in the most recent calendar year for which complete data are available, where reported.
 
+5. **Service territory size.** The number of residential electric customers and residential gas customers each utility serves, drawn from the most recent year of federal reporting (2024). These counts give the other four metrics scale: a $1B profit at a utility serving 7 million households reads very differently than a $1B profit at a utility serving 400,000.
+
 ---
 
 ## The Ten Utilities
@@ -38,8 +40,9 @@ The ten target utilities are listed in full in the Target Utilities table in `RE
 | HIFLD Electric Retail Service Territories | Utility service territory polygons | Script 05 | README — GIS / HIFLD section |
 | Census 2022 Cartographic Boundary Tracts | Census tract polygons for centroid mapping | Script 06 | README — Census Tract Boundaries section |
 | DOE LEAD 2022 | Tract-level energy burden baseline (2022) | Script 07 | README — DOE LEAD section |
-| EIA Form 861 | Residential electricity revenue and customers by utility (2022, 2024) | Script 07 | README — EIA 861 section |
-| EIA Form 176 | Average annual residential gas bill by state (2022, 2024) | Script 07 | README — EIA 176 section |
+| EIA Form 861 | Residential electricity revenue and customers by utility (2022, 2024) | Script 07 (growth ratio) and Script 09 (customer counts) | README — EIA 861 section |
+| EIA Form 176 (state level) | Average annual residential gas bill by state (2022, 2024) | Script 07 | README — EIA 176 section |
+| EIA Form 176 via PUDL (utility level) | Residential gas customer counts by utility × state (2024) | Script 09 | `Cleaned_Data/pudl/eia/176/CLEANED.md` |
 
 ---
 
@@ -144,6 +147,49 @@ Script 08 (`R/08_burden_summary.R`) joins the 2024 burden estimates to the utili
 
 ---
 
+### Part D — Service Territory Customer Counts (Script 09)
+
+#### D1. Why customer counts matter to the comparison
+
+The four metrics in Parts A–C describe what each utility earns, what it pays its chief executive, how heavy its customers' energy bills are, and how many of those customers are cut off for non-payment. None of those numbers is meaningful in isolation: a half-million-dollar disconnection figure means one thing for a utility serving four million households and another thing entirely for a utility serving four hundred thousand. Part D adds the denominator — how many households the utility actually serves — so every other metric in the deliverable can be read at the right scale.
+
+#### D2. Residential electric customers (EIA Form 861)
+
+**Source.** EIA Form 861 is the U.S. Department of Energy's annual survey of every electric utility in the country. It records how many customers each utility serves, broken out by class (residential, commercial, industrial) and by the state in which they take service. We use the 2024 reporting year — the most recent available at the time of analysis.
+
+**Method.** For each of the ten target utilities, the script identifies that utility's operating subsidiaries using the same name patterns established in Scripts 05 through 07 (kept in one shared file, `R/lib/target_subsidiaries.R`, so every script in the pipeline agrees on which entities roll up to which holding company). Within EIA 861, a single operating company can appear more than once in the same state if it files different parts of the form separately; the script deduplicates on utility-and-state before summing residential customers, to make sure no household is counted twice.
+
+**ComEd appears in two rows on purpose.** As with the energy-burden analysis, ComEd's customer count is included in both the ComEd row and the Exelon row of the final summary. This is consistent with the rest of the deliverable: the convening wants to see ComEd's service-territory scale on its own as well as Exelon's full consolidated footprint.
+
+**Caveat — Community Choice Aggregation.** California (and a handful of other states) have a program in which a locally governed Community Choice Aggregator buys generation on behalf of residents while the incumbent utility continues to deliver the electricity. The CCA, not the incumbent utility, files the EIA 861 row for those customers' residential count. PG&E's reported figure (about 1.86 million residential customers) therefore reflects only its directly-bundled customers; the company actually delivers electricity to several million additional households whose generation is now served by a CCA. PG&E's per-customer profit, pay, and burden numbers should be compared cautiously against vertically integrated utilities in states without CCAs.
+
+#### D3. Residential gas customers (EIA Form 176 via PUDL)
+
+**Source.** EIA Form 176 is the federal natural gas operator survey, the gas-side counterpart to Form 861. Catalyst Cooperative's Public Utility Data Liberation (PUDL) project republishes Form 176 in a clean, utility-level form. We use the PUDL extract for the 2024 reporting year and filter to residential customers.
+
+**Method.** Six of the ten target utilities operate gas distribution subsidiaries in addition to their electric business: Duke Energy, Exelon, National Grid, PG&E, Xcel Energy, and Southern Company. For each of those six, the script aggregates the residential customer counts of every named gas subsidiary in the PUDL data — for example, Southern Company's gas customer figure sums Atlanta Gas Light, Nicor Gas (Illinois), Virginia Natural Gas, and Chattanooga Gas. The remaining four target utilities (American Electric Power, ComEd as a stand-alone row, Arizona Public Service, and El Paso Electric) do not operate gas distribution, so their gas customer count is blank rather than zero.
+
+**Two different views of EIA 176.** A note on naming: Script 07 uses a state-level version of EIA 176 for the gas-bill growth ratio that projects 2022 burden figures forward to 2024. Script 09 uses a utility-level version of the same underlying federal survey, accessed via PUDL. Both pull from EIA Form 176; they differ only in how the data are aggregated — state totals for Script 07's projection, utility-by-utility for Script 09's customer counts.
+
+#### D4. Final assembly (Script 09)
+
+Script 09 (`R/09_final_summary.R`) is the last step in the pipeline. It joins the four upstream outputs — CEO compensation (Script 01), utility profits (Script 02), shutoffs (Script 03), and energy burdens (Script 08) — with the electric and gas customer-count tables built in D2 and D3, producing a single 10-row, 14-column comparative table. Two files are written: a CSV that follows the rest of the repo's naming convention for downstream pipelines, and a formatted Excel workbook intended for sharing at the convening. The Excel workbook has two sheets:
+
+- **Summary** — the 14-column table with column groups across the top (Identity, CEO compensation, Net income FY2025, Energy burdens, Disconnections, Customer counts 2024), dollar / percent / comma formatting on the values, a frozen header, and column widths set so every cell is legible without resizing.
+- **Methodology** — a condensed in-workbook reference describing every column and its data source, so a reader who opens the Excel without the larger repo can still cite each figure correctly.
+
+---
+
+### Part E — CEO Pay Ranking and Profit-Change Reporting
+
+Two of the columns in the final deliverable are derived inside Script 09 rather than carried over directly from Scripts 01 or 02. Both are worth describing in plain language because each makes a non-obvious choice about how to present the underlying data.
+
+**CEO pay ranking.** The deliverable includes a numeric rank for each target utility's CEO compensation — rank 1 is the highest-paid CEO, rank 2 the next highest, and so on. The ranking is computed against the *entire* EPI executive-compensation universe (roughly 51 utilities after deduplicating to one row per utility, keeping the highest-paid named executive as the incumbent), not just the ten convening targets. This is a deliberate choice: ranking inside a self-selected group of ten would always produce a 1-through-10 list, which says little about how the targets compare to the rest of the U.S. utility sector. Ranking against the EPI universe lets the convening say "this CEO is the *N*th-highest-paid utility chief executive in EPI's 2025 dataset," which is a sharper comparison. Three target utilities are not in the EPI universe: National Grid (UK-listed, files in London), Arizona Public Service (its holding company Pinnacle West is the EPI entity, not APS itself), and El Paso Electric (privately held since 2020). Their CEO rank is blank rather than placed at the bottom.
+
+**Profit change reporting.** Script 02 produces growth ratios — a value of 1.10 means profits grew 10%. Script 09 converts these into percent-change figures for display (a ratio of 1.10 becomes "+10.0%"). It also corrects a data-quality quirk in the EPI source: when EPI has not yet received a utility's FY2025 disclosure, it sometimes records the value as zero rather than as missing. Without intervention, the arithmetic of (zero ÷ prior year) − 1 would produce a misleading "−100%" figure for National Grid (whose UK fiscal-year calendar means 2025 data lags behind) and El Paso Electric (which no longer publishes). Script 09 treats those zeros as missing data, so those utilities show a blank in the profit-change columns rather than an inaccurate decline.
+
+---
+
 ## Key Assumptions and Limitations
 
 - **Other fuels held at 2022.** No reliable national source provides a utility- or state-level growth ratio for heating oil, propane, or wood between 2022 and 2024. Other fuel costs are therefore left at their 2022 values. This assumption may understate energy burden for households in the rural Northeast and rural West, where heating oil and propane are common primary heating fuels.
@@ -160,6 +206,14 @@ Script 08 (`R/08_burden_summary.R`) joins the 2024 burden estimates to the utili
 
 - **No demographic disaggregation.** The summary statistics reported in the final CSV are population-weighted averages across all households in each utility's service territory. The underlying DOE LEAD subpopulation data support breakdowns by income band, tenure (owner vs. renter), and heating fuel if a more disaggregated analysis is needed.
 
+- **PG&E electric customer count understates territory size.** PG&E delivers electricity to roughly five and a half million residential meters in northern and central California, but generation for the majority of those meters is now supplied by Community Choice Aggregators, which file their own EIA 861 row. The 1.86 million figure in the deliverable is PG&E's directly-bundled residential customers; its actual delivery footprint is substantially larger. Per-customer comparisons against vertically integrated utilities in states without CCA should be made with this in mind.
+
+- **Narragansett (Rhode Island) is still grouped under National Grid.** PPL acquired Narragansett Electric from National Grid in May 2022. The repo's subsidiary mapping pre-dates that transfer and continues to attribute Narragansett to National Grid, so National Grid's gas customer count includes Narragansett's residential customers. This keeps the deliverable internally consistent with the burden statistics in Part C, which also attribute those tracts to National Grid; it does mean the reported National Grid customer figure is slightly inflated relative to today's ownership.
+
+- **EIA Form 176 utility-level coverage depends on operator reporting.** A small gas distribution utility that did not file Form 176 for a given year, or that files under an unusual entity name, may be missed. The script targets each holding company's largest named gas subsidiaries by state; minor non-reporting affiliates are not captured.
+
+- **CEO rank denominator is EPI's coverage, not the entire U.S. utility sector.** EPI tracks roughly 51 utilities after deduplication — predominantly the large investor-owned electric and gas companies plus a few select munis. A utility ranking, for example, twelfth means twelfth among the 51 utilities EPI compiles compensation data on, not twelfth in the country.
+
 ---
 
 ## Glossary
@@ -168,11 +222,17 @@ Script 08 (`R/08_burden_summary.R`) joins the 2024 burden estimates to the utili
 
 **Centroid.** The geographic center of a polygon — in this case, the center point of a census tract's boundary. Used here to assign each tract to a utility service territory.
 
+**Community Choice Aggregator (CCA).** A locally governed organization — found in California, Massachusetts, New York, Illinois, New Jersey, Ohio, and a few other states — that purchases electricity generation on behalf of residents while leaving delivery in the hands of the incumbent utility. Because CCAs file their own EIA Form 861 row for generation customers, an incumbent utility's reported residential count can be substantially smaller than the number of homes to which it actually delivers electricity.
+
 **Energy burden.** The share of a household's annual income spent on residential energy costs (electricity, natural gas, and other fuels). Expressed as a decimal (e.g., 0.08 = 8%) or a percentage.
+
+**Energy and Policy Institute (EPI).** An independent watchdog organization that compiles annual executive-compensation and net-income figures from SEC filings into a single dataset covering the U.S. utility sector. The convening's primary source for both CEO pay and utility profits.
 
 **High energy burden.** An energy burden above 6% of household income. A household spending more than 6% of its income on energy is considered to face unaffordable energy costs under the DOE LEAD framework and the National Energy Assistance Directors' Association standard.
 
 **Operating subsidiary.** A utility company that directly provides service to customers — for example, ComEd (electricity in northern Illinois) or Pacific Gas & Electric. An operating subsidiary is often owned by a larger **holding company** (e.g., Exelon owns ComEd; PG&E Corporation owns Pacific Gas & Electric).
+
+**Public Utility Data Liberation (PUDL).** A project of Catalyst Cooperative that republishes federal energy regulatory datasets in a clean, analysis-ready form. Used in this analysis to access utility-level natural gas customer counts from EIA Form 176, which the agency itself only publishes at the state level.
 
 **Holding company.** A parent corporation that owns one or more operating utilities but does not itself provide service to customers. Holding companies file consolidated financial reports with the SEC and typically disclose CEO compensation at the holding-company level.
 
@@ -195,3 +255,4 @@ Script 08 (`R/08_burden_summary.R`) joins the 2024 burden estimates to the utili
 | `R/06_utility_tract_crosswalk.R` | Assigns census tracts to operating subsidiaries via centroid-in-polygon; produces the utility-tract crosswalk |
 | `R/07_burden_estimates_2024.R` | Joins DOE LEAD 2022 baseline to the crosswalk, applies income/electricity/gas growth ratios, computes 2024 per-row burden |
 | `R/08_burden_summary.R` | Aggregates 2024 burden estimates to per-utility weighted mean, weighted median, and share above 6% |
+| `R/09_final_summary.R` | Joins the four pipeline outputs with EIA 861 electric customer counts and PUDL EIA 176 gas customer counts; computes CEO pay rank against the full EPI universe and percent-change versions of the profit ratios; writes the convening's primary CSV and formatted Excel deliverable |
