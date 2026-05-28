@@ -19,3 +19,6 @@ temp/
 # macOS
 .DS_Store
 .positai
+
+# Claude Code local settings
+.claude/
