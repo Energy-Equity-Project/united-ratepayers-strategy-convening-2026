@@ -195,6 +195,37 @@ Used to compute the 2022→2024 electricity-bill growth ratio per operating subs
 
 Used to compute the 2022→2024 gas-bill growth ratio per state. Applied multiplicatively to the DOE LEAD 2022 gas cost baseline. Because EIA 176 has no utility-level breakdown, all tracts within a given state use the same gas growth ratio regardless of which utility serves them.
 
+### Power Generation Mix (EIA Form 923)
+**Source:** U.S. Energy Information Administration — [Form EIA-923 (Power Plant Operations Report)](https://www.eia.gov/electricity/data/eia923/)
+**Variable:** `net_generation_mwh` — net electricity generation per operator × fuel type × month, summed to calendar-year totals
+**Geographic resolution:** Operator (utility) level
+**Temporal resolution:** Annual; calendar year 2025
+**Coverage:** 9 of 12 target holding companies have reported EIA-923 generation; the remaining 3 are T&D-only and own no generation (see gaps note below)
+**Local path:** `Cleaned_Data/eia/923/28-05-2026-eia-923-plant-operations.csv`
+**Script:** `R/10_eia923_generation_mix.R`
+**Output:** `outputs/<dd-mm-yyyy>-united-ratepayers-generation-mix.xlsx` — three sheets (4-group / 9-group / 18-code MER fuel codes) with one row per target holding company. Ships as a companion xlsx deliverable to the main final summary; no CSV.
+
+| Utility | Data Available | Notes |
+|---------|---------------|-------|
+| American Electric Power | Yes | Vertically integrated; ~85 TWh across 6 operating subs (AEP Texas, Appalachian, Indiana Michigan, Kentucky, Ohio, PSO, SWEPCO) |
+| ComEd | **No** — T&D only | Generation owned by Exelon's former generation arm Constellation, spun off January 2022 |
+| Duke Energy | Yes | Vertically integrated; ~223 TWh across 6 subs (Carolinas, Florida, Indiana, Kentucky, Ohio, Progress) |
+| Exelon | **No** — T&D only | All Exelon operating subsidiaries (ComEd, BGE, PECO, Pepco, Delmarva, ACE) are T&D distribution utilities; generation spun off as Constellation in 2022 |
+| National Grid | **No** — T&D only | Niagara Mohawk, Mass Electric, Nantucket, Narragansett are pure distribution utilities |
+| PG&E | Yes | ~27 TWh — nuclear (Diablo Canyon) + natural gas + hydro |
+| Xcel Energy | Yes | Vertically integrated; ~68 TWh across NSP-MN, PSCo, SPS |
+| Arizona Public Service (APS) | Yes | Vertically integrated; ~50 TWh |
+| El Paso Electric | Yes | Vertically integrated; ~5 TWh |
+| Southern Company | Yes | Vertically integrated; ~170 TWh across Alabama Power, Georgia Power, Mississippi Power |
+| NV Energy | Yes | Nevada Power + Sierra Pacific Power; ~21 TWh |
+| Berkshire Hathaway Energy | Yes | ~96 TWh across NV Energy + PacifiCorp + MidAmerican (Nevada Power + Sierra Pacific rolled up under both NV Energy and BHE rows, mirroring the rest of the pipeline) |
+
+**Data availability and gaps:** Absence of an EIA-923 row for ComEd, Exelon, and National Grid reflects those utilities' business model — they are pure transmission-and-distribution companies that purchase wholesale generation rather than owning power plants — not a data-matching failure. Exelon spun off its generation arm as a separate publicly traded company, Constellation Energy, in January 2022; ComEd has always been distribution-only inside the Exelon holding structure. National Grid's US subsidiaries are similarly T&D-only by historical design. The xlsx output reports `0` total generation for these three utilities with a methodology note describing the gap.
+
+**Known false-positive exclusions:** The shared name-regex from `R/lib/target_subsidiaries.R` produces two false positives against EIA-923 operator strings, which the script removes explicitly: "Liberty Utilities (CalPeco Electric) LLC" (an Algonquin Power subsidiary in CA/NV that matches Exelon's `PECO` substring) and "Western Massachusetts Electric Company" (an Eversource subsidiary that matches National Grid's `MASSACHUSETTS ELECTRIC` substring).
+
+**Pumped storage and negative generation:** Pumped-storage hydroelectric plants consume more electricity than they produce on a net basis (parasitic load). Following the cleaned-file convention, negative `net_generation_mwh` values are preserved rather than zeroed. HPS (pumped storage) is grouped with conventional hydro in the 9-group tier and with renewables in the 4-group tier for consistency with EIA's own documentation; this is flagged in methodology.md.
+
 ## Notes & Caveats
 
 - **ComEd/Exelon overlap**: ComEd (row 2) is an operating subsidiary of Exelon (row 4). Financial metrics (net income, CEO pay) are reported at the Exelon holding-company level; energy burden and shutoff data are at the ComEd operating level. Both rows are retained to reflect the analysis scope.

@@ -45,6 +45,7 @@ The twelve target utilities are listed in full in the Target Utilities table in 
 | EIA Form 861 | Residential electricity revenue and customers by utility (2022, 2024) | Script 07 (growth ratio) and Script 09 (customer counts) | README — EIA 861 section |
 | EIA Form 176 (state level) | Average annual residential gas bill by state (2022, 2024) | Script 07 | README — EIA 176 section |
 | EIA Form 176 via PUDL (utility level) | Residential gas customer counts by utility × state (2024) | Script 09 | `Cleaned_Data/pudl/eia/176/CLEANED.md` |
+| EIA Form 923 (operator level) | Net electricity generation by operator × fuel type (calendar year 2025) | Script 10 | README — EIA 923 section |
 
 ---
 
@@ -192,6 +193,77 @@ Two of the columns in the final deliverable are derived inside Script 09 rather 
 
 ---
 
+### Part F — Power Generation Mix (Script 10)
+
+#### F1. Why this matters
+
+The four core metrics in Parts A–C describe what each utility *earns*, what it *pays its CEO*, what it *charges* its customers, and how many customers it *cuts off*. None of those numbers, on their own, says anything about the energy transition: a utility's fuel mix — how much of its power comes from coal versus natural gas versus nuclear versus renewables — is the variable that determines its exposure to fuel-price volatility, its emissions profile, and its trajectory in a decarbonizing grid. The convening's narrative work on the energy transition benefits from being able to answer questions like "how much of AEP's electricity comes from coal in 2025?" or "what share of Southern Company's power is nuclear?" alongside the financial and burden numbers. Part F adds that view as a companion deliverable.
+
+#### F2. The single metric we used and why
+
+The cleaned EIA-923 file contains five different `consumption_type` values per operator × fuel × month. Only one of them is appropriate for a generation-mix comparison: `net_generation_mwh`, the net electricity output of each operator × fuel × month combination in megawatt-hours.
+
+The other four metrics are unfit for two distinct reasons. First, two of them (`heat_content_total_mmbtu` and `heat_content_elec_mmbtu`) measure the *input* side of combustion — how much energy was burned — rather than the *output* (how much electricity reached the grid); they are useful for plant-efficiency analysis but not for "what was generated." Second, the two physical-quantity metrics (`fuel_consumption_quantity` and `fuel_consumption_elec_quantity`) are expressed in fuel-specific units — short tons for coal, thousand cubic feet for natural gas, barrels for oil — that are not comparable across fuels, and they are NA for renewables and nuclear (solar and wind have no fuel input quantity to measure). A "generation mix" requires a single common unit. Megawatt-hours of net generation is that unit: every fuel type produces it, the numbers can be summed across fuels for a utility-wide total, and percentages of that total are directly comparable.
+
+#### F3. Three classification tiers
+
+The xlsx output presents the fuel mix at three levels of detail, on three separate sheets, so users can choose the resolution they need:
+
+| Tier | Number of groups | Use case |
+|---|---|---|
+| Sheet 1 — 4 broad groups | 4 | Headline comparison: fossil fuels / nuclear / renewables / other |
+| Sheet 2 — 9 groups | 9 | Standard fuel-mix reporting following EIA's own documentation conventions |
+| Sheet 3 — 18 MER codes | 18 | Full granularity matching the EIA MER fuel-type code table |
+
+The four-group tier is built from the 18 MER codes as follows:
+
+| Group | MER codes | Plain description |
+|---|---|---|
+| Fossil fuels | COL, WOC, NG, OOG, DFO, RFO, WOO, PC | Coal, waste coal, natural gas, other gases, distillate oil, residual oil, waste oil, petroleum coke |
+| Nuclear | NUC | Nuclear |
+| Renewables | SUN, WND, HYC, HPS, GEO, WWW, MLG, ORW | Solar, wind, hydro (conventional + pumped storage), geothermal, wood and biomass, landfill gas, other renewables |
+| Other | OTH | Other / unclassified |
+
+The nine-group tier collapses these 18 codes into the categories EIA itself uses in its summary tables: Nuclear, Coal (COL + WOC), Natural gas (NG + OOG), Petroleum (DFO + RFO + WOO + PC), Solar, Wind, Hydro (HYC + HPS), Geothermal, Biomass / Other renewables (WWW + MLG + ORW), and Other.
+
+Each sheet reports two paired columns per fuel group — net generation in MWh and that group's share of the utility's total generation — alongside a single utility-total MWh column on the left.
+
+#### F4. Operator-to-utility matching
+
+The script uses the same shared subsidiary table (`R/lib/target_subsidiaries.R`) and the same name-regex pattern that scripts 01–03 and 05–08 use, applied case-insensitively against the EIA-923 `operator_name` field. For each of the twelve target holding companies, the script collects every EIA-923 operator whose name matches any of that holding company's subsidiary patterns, then sums generation across those operators. The ComEd / Exelon and NV Energy / Berkshire Hathaway Energy overlaps are preserved by design, identically to the rest of the pipeline: Nevada Power and Sierra Pacific generation is counted in both NV Energy's row and BHE's row.
+
+**Known false positives.** The shared name regex was tuned to match HIFLD shapefile entries, EIA-861 utility names, and EJL dashboard strings, where the operating subsidiaries appear under their official names. EIA-923 introduces two operator strings that match the regex but are not affiliated with the target holding companies, and the script removes them explicitly:
+
+- *Liberty Utilities (CalPeco Electric) LLC* matches Exelon's `PECO` substring pattern (the regex `PECO` lacks a word boundary, so the substring "Peco" inside "CalPeco" registers as a hit). Liberty Utilities is an Algonquin Power subsidiary serving small portions of California and Nevada and has no Exelon affiliation.
+- *Western Massachusetts Electric Company* matches National Grid's `MASSACHUSETTS ELECTRIC` pattern. Western Mass Electric is an Eversource subsidiary, not a National Grid subsidiary.
+
+Both are removed from the matched-operator list before aggregation. After these exclusions, Exelon and National Grid produce zero matched operators, which is the correct answer (see F6).
+
+#### F5. Sector scope and increment-row handling
+
+EIA's underlying Form 923 data is reported across seven NAICS sectors — sector 1 (regulated electric utilities), sectors 2–3 (independent power producers and CHP), and sectors 4–7 (commercial and industrial self-generators). The cleaned input file aggregates across all seven sectors. Script 10 inherits this scope without re-filtering. In practice this has little effect on the comparison: the target IOU subsidiaries we match by operator name are nearly all sector 1 (regulated electric utility) operations, and any small amounts of non-sector-1 generation under those same operator names belong to the same legal entity.
+
+The cleaning step that produced the input file drops EIA's "State-Fuel Level Increment" rows (model-based estimates EIA inserts under `plant_id == 99999` to reconcile state-level totals); the national sum of `net_generation_mwh` in the cleaned file is approximately 12% below EIA's published 4,429 TWh figure for 2025 as a result. This gap is documented in `Cleaned_Data/eia/923/CLEANED.md` and is not specific to the target-IOU subset.
+
+#### F6. Why three utilities have no generation
+
+ComEd, Exelon, and National Grid produce zero matched operators after the false-positive exclusions described in F4. This is not a data-matching failure — those three holding companies legitimately own no generation under their U.S. retail-distribution subsidiaries.
+
+- **Exelon spun off its generation arm.** In January 2022, Exelon completed the separation of its competitive generation business into a new standalone publicly traded company, Constellation Energy. After that spin-off, all of Exelon's retained U.S. operating subsidiaries — ComEd (Illinois), BGE (Maryland), PECO (Pennsylvania), Pepco (DC/Maryland), Delmarva Power (Delaware/Maryland), and Atlantic City Electric (New Jersey) — are transmission-and-distribution-only utilities. They purchase wholesale power on the regional grid and deliver it to retail customers; they do not own power plants.
+- **ComEd** has always been a distribution-only utility within Exelon. It appears as a separate target in this analysis because the convening wants to see ComEd's distinct service-territory metrics, but its EIA-923 row is consistent with Exelon's: zero generation.
+- **National Grid's U.S. business is T&D-only by design.** Niagara Mohawk (upstate New York), Massachusetts Electric, Nantucket Electric, and Narragansett Electric (Rhode Island, divested to PPL in 2022 but still attributed to National Grid in this analysis per the rest of the pipeline) are all pure delivery utilities. National Grid's U.K. generation business is out of scope for this U.S.-only EIA-923 analysis.
+
+The xlsx output reports `0` total generation for these three utilities and produces blank percentage shares for them on every fuel-group column. Documenting the absence rather than omitting these utilities preserves the 12-row layout that matches the rest of the deliverable.
+
+#### F7. Pumped storage and negative generation
+
+Two implementation notes about the way hydro generation is represented:
+
+- **Pumped storage is grouped with hydro, not broken out separately.** EIA's MER code `HPS` (hydroelectric, pumped storage) is grouped with `HYC` (conventional hydro) inside the "Hydro" bucket of the nine-group tier and inside the "Renewables" bucket of the four-group tier. This follows EIA's own published convention. The 18-code tier keeps HPS distinct for users who need that granularity.
+- **Negative generation values are preserved.** Pumped-storage plants consume more electricity to fill their upper reservoir than they release downhill, on a net annual basis — they are a storage technology that operates at a round-trip loss, not a generation technology. EIA-923 records this as negative `net_generation_mwh`. The cleaning step retains those negative values, and Script 10 does the same. This means a utility with a large pumped-storage fleet will show a small negative "Hydro" or "Renewables" contribution; the share-of-total percentages also go slightly negative for that fuel group. The negative values are real and consistent with how EIA itself publishes pumped-storage data.
+
+---
+
 ## Key Assumptions and Limitations
 
 - **Other fuels held at 2022.** No reliable national source provides a utility- or state-level growth ratio for heating oil, propane, or wood between 2022 and 2024. Other fuel costs are therefore left at their 2022 values. This assumption may understate energy burden for households in the rural Northeast and rural West, where heating oil and propane are common primary heating fuels.
@@ -258,3 +330,4 @@ Two of the columns in the final deliverable are derived inside Script 09 rather 
 | `R/07_burden_estimates_2024.R` | Joins DOE LEAD 2022 baseline to the crosswalk, applies income/electricity/gas growth ratios, computes 2024 per-row burden |
 | `R/08_burden_summary.R` | Aggregates 2024 burden estimates to per-utility weighted mean, weighted median, and share above 6% |
 | `R/09_final_summary.R` | Joins the four pipeline outputs with EIA 861 electric customer counts and PUDL EIA 176 gas customer counts; computes CEO pay rank against the full EPI universe and percent-change versions of the profit ratios; writes the convening's primary CSV and formatted Excel deliverable |
+| `R/10_eia923_generation_mix.R` | Aggregates EIA-923 net generation (MWh) to each target holding company's operating subsidiaries, builds three fuel-classification tiers (4 / 9 / 18 groups), and writes a three-sheet xlsx companion deliverable describing each utility's 2025 generation mix |
