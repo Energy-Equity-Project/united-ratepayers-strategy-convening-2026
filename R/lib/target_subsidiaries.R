@@ -50,5 +50,13 @@ targets <- tribble(
   # Southern Company
   "Southern Company",           "Alabama Power",                    "ALABAMA POWER",                                      "SOUTHERN CO|SOUTHERN COMPANY",     "AL",
   "Southern Company",           "Georgia Power",                    "GEORGIA POWER",                                      "SOUTHERN CO|SOUTHERN COMPANY",     "GA",
-  "Southern Company",           "Mississippi Power",                "MISSISSIPPI POWER",                                  "SOUTHERN CO|SOUTHERN COMPANY",     "MS"
+  "Southern Company",           "Mississippi Power",                "MISSISSIPPI POWER",                                  "SOUTHERN CO|SOUTHERN COMPANY",     "MS",
+  # NV Energy (operating sub of Berkshire Hathaway Energy)
+  "NV Energy",                  "Nevada Power Company",             "^NEVADA POWER",                                      "NEVADA ENERGY|NV ENERGY|BERKSHIRE", "NV",
+  "NV Energy",                  "Sierra Pacific Power Company",     "SIERRA PACIFIC POWER",                               "NEVADA ENERGY|NV ENERGY|BERKSHIRE", "NV,CA",
+  # Berkshire Hathaway Energy (holding co; includes NV Energy subs so they roll up into both targets)
+  "Berkshire Hathaway Energy",  "Nevada Power Company",             "^NEVADA POWER",                                      "NEVADA ENERGY|NV ENERGY|BERKSHIRE", "NV",
+  "Berkshire Hathaway Energy",  "Sierra Pacific Power Company",     "SIERRA PACIFIC POWER",                               "NEVADA ENERGY|NV ENERGY|BERKSHIRE", "NV,CA",
+  "Berkshire Hathaway Energy",  "PacifiCorp",                       "^PACIFICORP$",                                       "PACIFICORP|BERKSHIRE",             "OR,WA,CA,UT,WY,ID",
+  "Berkshire Hathaway Energy",  "MidAmerican Energy",               "^MIDAMERICAN ENERGY",                                "BERKSHIRE|MIDAMERICAN",            "IA,IL,SD,NE"
 )

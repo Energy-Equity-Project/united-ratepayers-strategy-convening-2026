@@ -3,11 +3,13 @@ library(tidyverse)
 source("../../Internal/data-pipelines/eep-pipeline-core/collectors/acs_collector.R")
 
 # States derived from HIFLD coverage audit: outputs/24-05-2026-territory-coverage-gap-report.md
+# 2026 expansion adds NV (NV Energy), OR/WA/UT/WY/ID (PacifiCorp), and IA/NE (MidAmerican).
 target_states <- c(
-  "AL", "AR", "AZ", "CA", "CO", "DC", "DE", "FL", "GA", "IL",
-  "IN", "KY", "LA", "MA", "MD", "MI", "MN", "MS", "NC", "ND",
-  "NJ", "NM", "NY", "OH", "OK", "PA", "RI", "SC", "SD", "TN",
-  "TX", "VA", "WI", "WV"
+  "AL", "AR", "AZ", "CA", "CO", "DC", "DE", "FL", "GA", "IA",
+  "ID", "IL", "IN", "KY", "LA", "MA", "MD", "MI", "MN", "MS",
+  "NC", "ND", "NE", "NJ", "NM", "NV", "NY", "OH", "OK", "OR",
+  "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VA", "WA", "WI",
+  "WV", "WY"
 )
 
 years     <- c(2022, 2024)

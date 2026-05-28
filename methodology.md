@@ -20,13 +20,15 @@ This document explains, in plain language, how the United Ratepayers 2026 compar
 
 ---
 
-## The Ten Utilities
+## The Twelve Utilities
 
-The ten target utilities are listed in full in the Target Utilities table in `README.md`. Two overlaps are worth noting here in plain language:
+The twelve target utilities are listed in full in the Target Utilities table in `README.md`. Three overlaps are worth noting here in plain language:
 
 - **ComEd and Exelon** are both in the analysis. ComEd is an operating subsidiary of Exelon. Profits and CEO compensation are reported at the Exelon holding-company level; energy burden and shutoff data are at the ComEd operating level, because those metrics depend on which customers ComEd actually serves. Both rows are kept so the analysis can speak to ComEd's service territory specifically while also capturing Exelon's full consolidated finances.
 
 - **APS and Pinnacle West** follow the same logic. Arizona Public Service Company (APS) is the operating subsidiary; Pinnacle West Capital is the holding company. Financial metrics are at the Pinnacle West level; energy burden data is at the APS level.
+
+- **NV Energy and Berkshire Hathaway Energy** follow the same pattern, with one extra layer. NV Energy is a trade name for two operating utilities — Nevada Power Company (southern Nevada) and Sierra Pacific Power Company (northern Nevada, plus a sliver of eastern California). Both are wholly owned by Berkshire Hathaway Energy (BHE). BHE itself is roughly 92% owned by Berkshire Hathaway Inc., Warren Buffett's holding conglomerate, but BHE files its own SEC reports because it has registered public debt — so its CEO compensation and consolidated net income are disclosed at the BHE level (Gregory Abel). NV Energy does not file its own proxy, so its CEO compensation row pulls from BHE just as APS's row pulls from Pinnacle West. Energy burden and customer-count metrics for NV Energy are reported at the Nevada Power + Sierra Pacific operating level. The BHE row rolls up NV Energy plus two other U.S. retail subsidiaries — PacifiCorp (operating as Pacific Power in OR/WA/CA and as Rocky Mountain Power in UT/WY/ID) and MidAmerican Energy (IA/IL/SD/NE). BHE's UK distribution business (Northern Powergrid) and its interstate gas-transmission businesses (BHE Pipeline Group, BHE GT&S) are out of scope; we limit the BHE rollup to retail electric and gas distribution to keep the comparison apples-to-apples with the other targets.
 
 ---
 
@@ -52,11 +54,11 @@ The ten target utilities are listed in full in the Target Utilities table in `RE
 
 **Data source:** Energy and Policy Institute (EPI) datasets, which compile annual net income and CEO compensation from SEC 10-K and DEF 14A (proxy) filings.
 
-**Profits (Script 02, `R/02_epi_utility_profits.R`):** For each of the ten target holding companies, the script sums subsidiary-level net income across all subsidiaries reported under that parent for FY2021, FY2024, and FY2025. Growth ratios are then computed arithmetically (2025 value ÷ 2024 value for the one-year ratio; 2025 value ÷ 2021 value for the four-year ratio).
+**Profits (Script 02, `R/02_epi_utility_profits.R`):** For each of the twelve target holding companies, the script sums subsidiary-level net income across all subsidiaries reported under that parent for FY2021, FY2024, and FY2025. Growth ratios are then computed arithmetically (2025 value ÷ 2024 value for the one-year ratio; 2025 value ÷ 2021 value for the four-year ratio).
 
 **CEO compensation (Script 01, `R/01_epi_exec_comp.R`):** The script extracts total compensation for the most recent proxy year available for each holding company's chief executive.
 
-**Holding-company vs. operating-utility level.** ComEd's profits are pulled at the ComEd operating-utility level (not Exelon's consolidated total), because the convening wants to see ComEd's own earnings. ComEd's CEO compensation, however, is pulled at the Exelon level, because Exelon's CEO is ComEd's ultimate executive and that is how compensation is disclosed publicly. The same pattern applies to APS / Pinnacle West.
+**Holding-company vs. operating-utility level.** ComEd's profits are pulled at the ComEd operating-utility level (not Exelon's consolidated total), because the convening wants to see ComEd's own earnings. ComEd's CEO compensation, however, is pulled at the Exelon level, because Exelon's CEO is ComEd's ultimate executive and that is how compensation is disclosed publicly. The same pattern applies to APS / Pinnacle West, and to NV Energy / Berkshire Hathaway Energy: NV Energy's profits are summed from its Nevada Power and Sierra Pacific Power operating rows, while its CEO compensation comes from Gregory Abel at the BHE parent (NV Energy operating CEO Brandon Barkhuff's compensation is not separately disclosed). BHE itself is reported as its own holding-company row, with net income summed across NV Energy + PacifiCorp + MidAmerican.
 
 **Known gaps:**
 - National Grid's 2025 profit data are not available in the EPI dataset. FY2021 and FY2024 figures are reported; FY2025 profit and the one-year growth ratio are left blank.
@@ -72,7 +74,7 @@ The ten target utilities are listed in full in the Target Utilities table in `RE
 
 **Double-counting prevention:** The EJL data contains, for PECO (Exelon) and Xcel Energy (Colorado), both separate electric and gas rows and a combined "Electric and Gas Customers" row. The combined rows are excluded before matching to prevent double-counting.
 
-**Coverage gaps:** SWEPCO, PSO, Pepco, Atlantic City Electric, Alabama Power, and Mississippi Power are not reported in the EJL data and therefore have no shutoff figures in the final output.
+**Coverage gaps:** SWEPCO, PSO, Pepco, Atlantic City Electric, Alabama Power, and Mississippi Power are not reported in the EJL data and therefore have no shutoff figures in the final output. Neither Nevada Power Company nor Sierra Pacific Power Company appears in EJL either, so NV Energy's disconnection cell is blank. Berkshire Hathaway Energy's disconnection total reflects only the BHE subsidiaries EJL does cover (MidAmerican Energy IA/IL, PacifiCorp, Pacific Power, Rocky Mountain Power); the NV Energy portion of BHE's rollup contributes nothing to that figure.
 
 ---
 
@@ -90,15 +92,15 @@ These two challenges — the vintage gap and the missing utility-to-tract link �
 
 #### C2. Mapping Utilities to Neighborhoods (Scripts 05 and 06)
 
-**Script 05 (`R/05_territory_coverage.R`)** matches each of the ten target holding companies' operating subsidiaries to one or more electric service territory polygons in the HIFLD dataset (Electric Retail Service Territories, published by the Oak Ridge National Laboratory). Each match is based on utility name, and the script confirms that all 34 expected operating subsidiaries matched at least one polygon.
+**Script 05 (`R/05_territory_coverage.R`)** matches each of the twelve target holding companies' operating subsidiaries to one or more electric service territory polygons in the HIFLD dataset (Electric Retail Service Territories, published by the Oak Ridge National Laboratory). Each match is based on utility name, and the script confirms that all 41 expected operating subsidiaries matched at least one polygon.
 
 **Script 06 (`R/06_utility_tract_crosswalk.R`)** builds the utility-to-tract link using a technique called centroid-in-polygon. The geographic center — or **centroid** — of each census tract is computed, and then the script checks whether that centroid falls inside each utility's service territory polygon. If it does, the tract is assigned to that utility.
 
 **Why centroids?** This approach is simple, deterministic, and matches the geographic unit DOE LEAD uses for its own reporting. The main limitation is that tracts straddling a service territory boundary are assigned to whichever territory contains their centroid. A tract whose centroid falls just outside a territory boundary will be excluded from that utility's count even if a portion of the tract's population is served by that utility. This limitation is most material for large, sparsely populated rural tracts at the edge of a service territory; for dense urban tracts, it is negligible.
 
-**ComEd/Exelon overlap:** Census tracts assigned to ComEd's service territory are counted in both ComEd's row and Exelon's row in the final output. This is intentional — the convening wants to see ComEd's service territory specifically while also seeing Exelon's full service footprint.
+**ComEd/Exelon overlap:** Census tracts assigned to ComEd's service territory are counted in both ComEd's row and Exelon's row in the final output. This is intentional — the convening wants to see ComEd's service territory specifically while also seeing Exelon's full service footprint. The same convention applies to NV Energy / Berkshire Hathaway Energy: Nevada Power and Sierra Pacific Power tracts are counted both under NV Energy and under BHE.
 
-**Output (the crosswalk):** A table linking every operating subsidiary to every census tract whose centroid falls within its territory — 32,739 rows across the ten holding companies.
+**Output (the crosswalk):** A table linking every operating subsidiary to every census tract whose centroid falls within its territory — 36,026 rows across the twelve holding companies.
 
 #### C3. The 2022 Baseline (DOE LEAD)
 
@@ -112,7 +114,7 @@ DOE LEAD provides, for each census tract and each subpopulation within that trac
 
 The subpopulations are defined by combinations of income band, tenure (owner vs. renter), building age, and primary heating fuel. A single census tract can have dozens of rows — one per subpopulation. The pipeline preserves this granularity so that weighted statistics downstream reflect the actual mix of household types within each tract.
 
-**ACS tract median income (Script 04, `R/04_acs_tract_median_income.R`)** downloads 2022 and 2024 median household income for each census tract in the 34 target states from the American Community Survey (ACS) Table B19013, via the Census Bureau API. These figures are used in the next step to compute how much tract incomes changed between 2022 and 2024.
+**ACS tract median income (Script 04, `R/04_acs_tract_median_income.R`)** downloads 2022 and 2024 median household income for each census tract in the 42 target states from the American Community Survey (ACS) Table B19013, via the Census Bureau API. (The 2026 expansion added NV for NV Energy, OR/WA/UT/WY/ID for PacifiCorp, and IA/NE for MidAmerican Energy; California and South Dakota were already in the collection.) These figures are used in the next step to compute how much tract incomes changed between 2022 and 2024.
 
 #### C4. Forward-Projecting to 2024 (Script 07)
 
@@ -137,7 +139,7 @@ The 2024 per-row energy burden is then computed as:
 
 #### C5. Aggregating to Per-Utility Statistics (Script 08)
 
-Script 08 (`R/08_burden_summary.R`) joins the 2024 burden estimates to the utility-tract crosswalk and computes three summary statistics for each of the ten targets:
+Script 08 (`R/08_burden_summary.R`) joins the 2024 burden estimates to the utility-tract crosswalk and computes three summary statistics for each of the twelve targets:
 
 1. **Weighted mean burden.** Each cost component is weighted by its own valid-units count (the number of households that component's estimate represents), the weighted components are summed, and the total is divided by weighted income. This is more precise than a simple average because it accounts for the fact that not every household has data recorded for every energy component.
 
@@ -157,9 +159,9 @@ The four metrics in Parts A–C describe what each utility earns, what it pays i
 
 **Source.** EIA Form 861 is the U.S. Department of Energy's annual survey of every electric utility in the country. It records how many customers each utility serves, broken out by class (residential, commercial, industrial) and by the state in which they take service. We use the 2024 reporting year — the most recent available at the time of analysis.
 
-**Method.** For each of the ten target utilities, the script identifies that utility's operating subsidiaries using the same name patterns established in Scripts 05 through 07 (kept in one shared file, `R/lib/target_subsidiaries.R`, so every script in the pipeline agrees on which entities roll up to which holding company). Within EIA 861, a single operating company can appear more than once in the same state if it files different parts of the form separately; the script deduplicates on utility-and-state before summing residential customers, to make sure no household is counted twice.
+**Method.** For each of the twelve target utilities, the script identifies that utility's operating subsidiaries using the same name patterns established in Scripts 05 through 07 (kept in one shared file, `R/lib/target_subsidiaries.R`, so every script in the pipeline agrees on which entities roll up to which holding company). Within EIA 861, a single operating company can appear more than once in the same state if it files different parts of the form separately; the script deduplicates on utility-and-state before summing residential customers, to make sure no household is counted twice.
 
-**ComEd appears in two rows on purpose.** As with the energy-burden analysis, ComEd's customer count is included in both the ComEd row and the Exelon row of the final summary. This is consistent with the rest of the deliverable: the convening wants to see ComEd's service-territory scale on its own as well as Exelon's full consolidated footprint.
+**ComEd appears in two rows on purpose.** As with the energy-burden analysis, ComEd's customer count is included in both the ComEd row and the Exelon row of the final summary. This is consistent with the rest of the deliverable: the convening wants to see ComEd's service-territory scale on its own as well as Exelon's full consolidated footprint. NV Energy and Berkshire Hathaway Energy follow the same convention: Nevada Power Co. and Sierra Pacific Power Co. residential customers are counted in both rows.
 
 **Caveat — Community Choice Aggregation.** California (and a handful of other states) have a program in which a locally governed Community Choice Aggregator buys generation on behalf of residents while the incumbent utility continues to deliver the electricity. The CCA, not the incumbent utility, files the EIA 861 row for those customers' residential count. PG&E's reported figure (about 1.86 million residential customers) therefore reflects only its directly-bundled customers; the company actually delivers electricity to several million additional households whose generation is now served by a CCA. PG&E's per-customer profit, pay, and burden numbers should be compared cautiously against vertically integrated utilities in states without CCAs.
 
@@ -167,13 +169,13 @@ The four metrics in Parts A–C describe what each utility earns, what it pays i
 
 **Source.** EIA Form 176 is the federal natural gas operator survey, the gas-side counterpart to Form 861. Catalyst Cooperative's Public Utility Data Liberation (PUDL) project republishes Form 176 in a clean, utility-level form. We use the PUDL extract for the 2024 reporting year and filter to residential customers.
 
-**Method.** Six of the ten target utilities operate gas distribution subsidiaries in addition to their electric business: Duke Energy, Exelon, National Grid, PG&E, Xcel Energy, and Southern Company. For each of those six, the script aggregates the residential customer counts of every named gas subsidiary in the PUDL data — for example, Southern Company's gas customer figure sums Atlanta Gas Light, Nicor Gas (Illinois), Virginia Natural Gas, and Chattanooga Gas. The remaining four target utilities (American Electric Power, ComEd as a stand-alone row, Arizona Public Service, and El Paso Electric) do not operate gas distribution, so their gas customer count is blank rather than zero.
+**Method.** Eight of the twelve target utilities operate gas distribution subsidiaries in addition to their electric business: Duke Energy, Exelon, National Grid, PG&E, Xcel Energy, Southern Company, NV Energy, and Berkshire Hathaway Energy. For each of those eight, the script aggregates the residential customer counts of every named gas subsidiary in the PUDL data — for example, Southern Company's gas customer figure sums Atlanta Gas Light, Nicor Gas (Illinois), Virginia Natural Gas, and Chattanooga Gas. NV Energy's gas customers come from Sierra Pacific Power Company, which operates a gas distribution business in the Reno/Sparks area (Nevada Power Co. is electric-only, and Southwest Gas — independent of NV Energy — serves Las Vegas-area gas customers). Berkshire Hathaway Energy's gas rollup adds MidAmerican Energy Company's gas customers (heavily concentrated in Iowa, with smaller footprints in IL/NE/SD) on top of Sierra Pacific. PacifiCorp is electric-only. The remaining four target utilities (American Electric Power, ComEd as a stand-alone row, Arizona Public Service, and El Paso Electric) do not operate gas distribution, so their gas customer count is blank rather than zero.
 
 **Two different views of EIA 176.** A note on naming: Script 07 uses a state-level version of EIA 176 for the gas-bill growth ratio that projects 2022 burden figures forward to 2024. Script 09 uses a utility-level version of the same underlying federal survey, accessed via PUDL. Both pull from EIA Form 176; they differ only in how the data are aggregated — state totals for Script 07's projection, utility-by-utility for Script 09's customer counts.
 
 #### D4. Final assembly (Script 09)
 
-Script 09 (`R/09_final_summary.R`) is the last step in the pipeline. It joins the four upstream outputs — CEO compensation (Script 01), utility profits (Script 02), shutoffs (Script 03), and energy burdens (Script 08) — with the electric and gas customer-count tables built in D2 and D3, producing a single 10-row, 14-column comparative table. Two files are written: a CSV that follows the rest of the repo's naming convention for downstream pipelines, and a formatted Excel workbook intended for sharing at the convening. The Excel workbook has two sheets:
+Script 09 (`R/09_final_summary.R`) is the last step in the pipeline. It joins the four upstream outputs — CEO compensation (Script 01), utility profits (Script 02), shutoffs (Script 03), and energy burdens (Script 08) — with the electric and gas customer-count tables built in D2 and D3, producing a single 12-row, 14-column comparative table. Two files are written: a CSV that follows the rest of the repo's naming convention for downstream pipelines, and a formatted Excel workbook intended for sharing at the convening. The Excel workbook has two sheets:
 
 - **Summary** — the 14-column table with column groups across the top (Identity, CEO compensation, Net income FY2025, Energy burdens, Disconnections, Customer counts 2024), dollar / percent / comma formatting on the values, a frozen header, and column widths set so every cell is legible without resizing.
 - **Methodology** — a condensed in-workbook reference describing every column and its data source, so a reader who opens the Excel without the larger repo can still cite each figure correctly.
@@ -184,7 +186,7 @@ Script 09 (`R/09_final_summary.R`) is the last step in the pipeline. It joins th
 
 Two of the columns in the final deliverable are derived inside Script 09 rather than carried over directly from Scripts 01 or 02. Both are worth describing in plain language because each makes a non-obvious choice about how to present the underlying data.
 
-**CEO pay ranking.** The deliverable includes a numeric rank for each target utility's CEO compensation — rank 1 is the highest-paid CEO, rank 2 the next highest, and so on. The ranking is computed against the *entire* EPI executive-compensation universe (roughly 51 utilities after deduplicating to one row per utility, keeping the highest-paid named executive as the incumbent), not just the ten convening targets. This is a deliberate choice: ranking inside a self-selected group of ten would always produce a 1-through-10 list, which says little about how the targets compare to the rest of the U.S. utility sector. Ranking against the EPI universe lets the convening say "this CEO is the *N*th-highest-paid utility chief executive in EPI's 2025 dataset," which is a sharper comparison. Three target utilities are not in the EPI universe: National Grid (UK-listed, files in London), Arizona Public Service (its holding company Pinnacle West is the EPI entity, not APS itself), and El Paso Electric (privately held since 2020). Their CEO rank is blank rather than placed at the bottom.
+**CEO pay ranking.** The deliverable includes a numeric rank for each target utility's CEO compensation — rank 1 is the highest-paid CEO, rank 2 the next highest, and so on. The ranking is computed against the *entire* EPI executive-compensation universe (roughly 51 utilities after deduplicating to one row per utility, keeping the highest-paid named executive as the incumbent), not just the twelve convening targets. This is a deliberate choice: ranking inside a self-selected group of twelve would always produce a 1-through-12 list, which says little about how the targets compare to the rest of the U.S. utility sector. Ranking against the EPI universe lets the convening say "this CEO is the *N*th-highest-paid utility chief executive in EPI's 2025 dataset," which is a sharper comparison. Three target utilities are not in the EPI universe: National Grid (UK-listed, files in London), Arizona Public Service (its holding company Pinnacle West is the EPI entity, not APS itself), and El Paso Electric (privately held since 2020). Their CEO rank is blank rather than placed at the bottom. NV Energy and Berkshire Hathaway Energy share Gregory Abel's rank — the same compensation figure is read off the BHE row for both targets, reflecting the operating-vs-parent reporting pattern described in "The Twelve Utilities."
 
 **Profit change reporting.** Script 02 produces growth ratios — a value of 1.10 means profits grew 10%. Script 09 converts these into percent-change figures for display (a ratio of 1.10 becomes "+10.0%"). It also corrects a data-quality quirk in the EPI source: when EPI has not yet received a utility's FY2025 disclosure, it sometimes records the value as zero rather than as missing. Without intervention, the arithmetic of (zero ÷ prior year) − 1 would produce a misleading "−100%" figure for National Grid (whose UK fiscal-year calendar means 2025 data lags behind) and El Paso Electric (which no longer publishes). Script 09 treats those zeros as missing data, so those utilities show a blank in the profit-change columns rather than an inaccurate decline.
 
@@ -246,11 +248,11 @@ Two of the columns in the final deliverable are derived inside Script 09 rather 
 
 | Script | Purpose |
 |--------|---------|
-| `R/lib/target_subsidiaries.R` | Defines the list of ten target holding companies and their operating subsidiaries; imported by all downstream scripts |
+| `R/lib/target_subsidiaries.R` | Defines the list of twelve target holding companies and their operating subsidiaries; imported by all downstream scripts |
 | `R/01_epi_exec_comp.R` | Extracts CEO total compensation from EPI data for each holding company |
 | `R/02_epi_utility_profits.R` | Aggregates subsidiary-level net income into holding-company totals for FY2021, FY2024, and FY2025; computes growth ratios |
 | `R/03_ejl_disconnections.R` | Extracts annual shutoffs for non-payment from the EJL Disconnection Dashboard |
-| `R/04_acs_tract_median_income.R` | Downloads 2022 and 2024 ACS B19013 tract median household income for 34 states via the Census API |
+| `R/04_acs_tract_median_income.R` | Downloads 2022 and 2024 ACS B19013 tract median household income for 42 states via the Census API |
 | `R/05_territory_coverage.R` | Matches target operating subsidiaries to HIFLD service territory polygons; produces coverage gap report |
 | `R/06_utility_tract_crosswalk.R` | Assigns census tracts to operating subsidiaries via centroid-in-polygon; produces the utility-tract crosswalk |
 | `R/07_burden_estimates_2024.R` | Joins DOE LEAD 2022 baseline to the crosswalk, applies income/electricity/gas growth ratios, computes 2024 per-row burden |

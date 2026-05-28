@@ -9,19 +9,22 @@ target_utilities <- tibble(
     "American Electric Power", "ComEd", "Duke Energy",
     "Exelon", "National Grid", "PG&E",
     "Xcel Energy", "Arizona Public Service (APS)",
-    "El Paso Electric", "Southern Company"
+    "El Paso Electric", "Southern Company",
+    "NV Energy", "Berkshire Hathaway Energy"
   ),
   match_column = c(
     "parent", "utility", "utility",
     "parent", "parent", "parent",
     "utility", "utility",
+    "utility", "parent",
     "utility", "parent"
   ),
   match_type = c(
     "exact", "exact", "substring",
     "exact", "exact", "exact",
     "substring", "exact",
-    "exact", "exact"
+    "exact", "exact",
+    "substring", "exact"
   ),
   match_values = list(
     "American Electric Power",
@@ -33,7 +36,9 @@ target_utilities <- tibble(
     c("Xcel", "Northern States Power", "Public Service Co. of Colorado", "Southwestern Public Service"),
     "Arizona Public Service Co. (APS)",
     "El Paso Electric",
-    "Southern Company"
+    "Southern Company",
+    c("Nevada Power", "Sierra Pacific"),
+    "Berkshire Hathaway Energy"
   ),
   match_description = c(
     "Summed via Parent Company = 'American Electric Power'",
@@ -45,7 +50,9 @@ target_utilities <- tibble(
     "'Xcel' absent from Parent Company column; aggregated via Utility-name substring matching",
     "Operating-utility row; Utility = 'Arizona Public Service Co. (APS)' (distinct from Pinnacle West parent)",
     "Single row; Utility = 'El Paso Electric'",
-    "Summed via Parent Company = 'Southern Company'"
+    "Summed via Parent Company = 'Southern Company'",
+    "Operating-utility rows; Utility substring matches Nevada Power + Sierra Pacific (NV Energy d/b/a)",
+    "Summed via Parent Company = 'Berkshire Hathaway Energy' (overlaps with NV Energy target by design; rolls up Nevada Power + Sierra Pacific + PacifiCorp + MidAmerican)"
   )
 )
 
@@ -114,6 +121,6 @@ write.csv(
   row.names = FALSE
 )
 
-message("\nDone. ", sum(results$n_subsidiaries > 0), "/10 utilities matched.")
+message("\nDone. ", sum(results$n_subsidiaries > 0), "/12 utilities matched.")
 print(results %>% select(target_utility, n_subsidiaries, profit_2025_millions,
                           profit_ratio_2024_2025, profit_ratio_2021_2025))

@@ -32,10 +32,11 @@ eia176_path <- "../../Cleaned_Data/eia/176/15-04-2026-eia-176-residential-natura
 lead_dir    <- "../../Cleaned_Data/doe/lead"
 
 target_states <- c(
-  "AL", "AR", "AZ", "CA", "CO", "DC", "DE", "FL", "GA", "IL",
-  "IN", "KY", "LA", "MA", "MD", "MI", "MN", "MS", "NC", "ND",
-  "NJ", "NM", "NY", "OH", "OK", "PA", "RI", "SC", "SD", "TN",
-  "TX", "VA", "WI", "WV"
+  "AL", "AR", "AZ", "CA", "CO", "DC", "DE", "FL", "GA", "IA",
+  "ID", "IL", "IN", "KY", "LA", "MA", "MD", "MI", "MN", "MS",
+  "NC", "ND", "NE", "NJ", "NM", "NV", "NY", "OH", "OK", "OR",
+  "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VA", "WA", "WI",
+  "WV", "WY"
 )
 
 # ---- 1. Load crosswalk (most recent file) ------------------------------------
@@ -138,7 +139,11 @@ subsidiary_eia_patterns <- tribble(
   "El Paso Electric",                 "EL PASO ELECTRIC",
   "Alabama Power",                    "ALABAMA POWER",
   "Georgia Power",                    "GEORGIA POWER",
-  "Mississippi Power",                "MISSISSIPPI POWER"
+  "Mississippi Power",                "MISSISSIPPI POWER",
+  "Nevada Power Company",             "^NEVADA POWER",
+  "Sierra Pacific Power Company",     "SIERRA PACIFIC POWER",
+  "PacifiCorp",                       "^PACIFICORP$",
+  "MidAmerican Energy",               "^MIDAMERICAN ENERGY"
 )
 
 # For each subsidiary, compute avg annual residential bill per customer by state × year
@@ -209,10 +214,11 @@ message("Loading DOE LEAD 2022 data for target states...")
 state_fips_map <- tibble(
   state_abbr = target_states,
   fips_prefix = c(
-    "01", "05", "04", "06", "08", "11", "10", "12", "13", "17",
-    "18", "21", "22", "25", "24", "26", "27", "28", "37", "38",
-    "34", "35", "36", "39", "40", "42", "44", "45", "46", "47",
-    "48", "51", "55", "54"
+    "01", "05", "04", "06", "08", "11", "10", "12", "13", "19",
+    "16", "17", "18", "21", "22", "25", "24", "26", "27", "28",
+    "37", "38", "31", "34", "35", "32", "36", "39", "40", "41",
+    "42", "44", "45", "46", "47", "48", "49", "51", "53", "55",
+    "54", "56"
   )
 )
 

@@ -1,10 +1,10 @@
 # United Ratepayers Strategy Convening 2026
 
-A project in partnership with [People's Action Institute](https://peoplesaction.org/) for the **2026 United Ratepayers Strategy Convening**, producing a comparative analysis of ten investor-owned utilities (IOUs) across utility profits, CEO compensation, energy burdens, and (where available) shutoffs for non-payment.
+A project in partnership with [People's Action Institute](https://peoplesaction.org/) for the **2026 United Ratepayers Strategy Convening**, producing a comparative analysis of twelve investor-owned utilities (IOUs) across utility profits, CEO compensation, energy burdens, and (where available) shutoffs for non-payment.
 
 ## Goal
 
-Compare ten major IOUs across four dimensions — annual profits and profit growth, CEO total compensation, residential energy costs and energy burdens, and (where data permits) shutoffs for non-payment — and assemble findings into a single summary CSV for use at the convening.
+Compare twelve major IOUs across four dimensions — annual profits and profit growth, CEO total compensation, residential energy costs and energy burdens, and (where data permits) shutoffs for non-payment — and assemble findings into a single summary CSV for use at the convening.
 
 ## Target Utilities
 
@@ -20,6 +20,8 @@ Compare ten major IOUs across four dimensions — annual profits and profit grow
 | 8 | Arizona Public Service Company (APS) | Operating sub. of Pinnacle West | Profits/CEO likely at Pinnacle West level |
 | 9 | El Paso Electric | Stand-alone IOU | TX/NM (privately held since 2020 IIF acquisition — financial disclosure caveat) |
 | 10 | Southern Company | Holding co. | Parent of Georgia Power, Alabama Power, Mississippi Power |
+| 11 | NV Energy | Operating sub. of BHE | Two operating utilities — Nevada Power Co. + Sierra Pacific Power Co.; profits/CEO at BHE parent level, burden/shutoffs at operating level — APS pattern |
+| 12 | Berkshire Hathaway Energy (BHE) | Holding co. (sub of Berkshire Hathaway Inc.) | Rolls up NV Energy + PacifiCorp + MidAmerican Energy; ~92% owned by Berkshire Hathaway Inc. but files own 10-K with registered public debt |
 
 ## Final Deliverable
 
@@ -47,7 +49,7 @@ The primary output is a summary CSV with one row per utility:
 
 ### CEO Compensation
 **Source:** Energy and Policy Institute (EPI) — [*Utility Executive Compensation 2025*](https://energyandpolicy.org/executive-compensation/)  
-**Coverage:** 8 of 10 target utilities have data.
+**Coverage:** 10 of 12 target utilities have data.
 
 | Utility | Data Available | Notes |
 |---------|---------------|-------|
@@ -61,10 +63,12 @@ The primary output is a summary CSV with one row per utility:
 | Arizona Public Service (APS) | Yes | Matched at Pinnacle West holding-company level; CEO transition in 2025, Theodore Geisler (incumbent) used |
 | El Paso Electric | **No** | Privately held since 2020 (IIF acquisition); not in EPI dataset |
 | Southern Company | Yes | Direct match |
+| NV Energy | Yes | Matched at Berkshire Hathaway Energy parent level (Gregory Abel); NV Energy operating CEO Brandon Barkhuff comp not separately disclosed |
+| Berkshire Hathaway Energy | Yes | Direct match (Gregory Abel) |
 
 ### Utility Profits
 **Source:** Energy and Policy Institute (EPI) — [*Utility Profit Report*](https://energyandpolicy.org/utility-profit-report/)  
-**Coverage:** 9 of 10 target utilities present in EPI data; 8 of 10 have complete 2021/2024/2025 profit figures. El Paso Electric has no row (privately held since 2020). National Grid 2025 profit data is not available in EPI source (2021 and 2024 are present).
+**Coverage:** 11 of 12 target utilities present in EPI data; 10 of 12 have complete 2021/2024/2025 profit figures. El Paso Electric has no row (privately held since 2020). National Grid 2025 profit data is not available in EPI source (2021 and 2024 are present).
 
 | Utility | Match column | Subsidiaries summed | Notes |
 |---------|-------------|---------------------|-------|
@@ -78,14 +82,16 @@ The primary output is a summary CSV with one row per utility:
 | Arizona Public Service (APS) | Utility | Arizona Public Service Co. (APS) | Operating-utility row; distinct from Pinnacle West total |
 | El Paso Electric | — | **No match** | Not in EPI dataset — privately held since 2020 (IIF acquisition) |
 | Southern Company | Parent Company | Alabama Power; Georgia Power; Mississippi Power | 3 subs |
+| NV Energy | Utility (substring) | Nevada Power; Sierra Pacific | Operating-utility rows under BHE parent; distinct from BHE consolidated total |
+| Berkshire Hathaway Energy | Parent Company | MidAmerican; Nevada Power; PacifiCorp (Rocky Mountain Power and Pacific Power); Sierra Pacific | 4 subs (NV Energy subs overlap with NV Energy target by design) |
 
 ### Tract-Level Median Household Income
 **Source:** U.S. Census Bureau — American Community Survey (ACS) 5-year estimates, via the Census API  
 **Variable:** `B19013_001` — Median Household Income in the Past 12 Months (in inflation-adjusted dollars)  
 **Geographic resolution:** Census tract  
 **Temporal resolution:** 2022 ACS 5-year (2018–2022 reference period) and 2024 ACS 5-year (2020–2024 reference period)  
-**Coverage:** 34 states + DC — all jurisdictions where target IOU service territories are expected to operate, derived from the HIFLD territory coverage audit  
-**Output:** `Data/us_census/acs/{year}/tract/B19013_{state}.csv` — one file per state per year (68 files total); tidy format with columns `GEOID`, `NAME`, `variable`, `estimate`, `moe`
+**Coverage:** 42 states + DC — all jurisdictions where target IOU service territories are expected to operate, derived from the HIFLD territory coverage audit (2026 expansion added NV, OR, WA, UT, WY, ID, IA, NE for NV Energy + PacifiCorp + MidAmerican)  
+**Output:** `Data/us_census/acs/{year}/tract/B19013_{state}.csv` — one file per state per year (86 files total); tidy format with columns `GEOID`, `NAME`, `variable`, `estimate`, `moe`
 
 ### Shutoffs for Non-Payment (Disconnections)
 **Source:** Energy Justice Lab — [*Utility Disconnection Dashboard*](https://utilitydisconnections.org/)  
@@ -109,6 +115,8 @@ EJL disconnection data covers shutoffs for non-payment specifically.
 | Arizona Public Service (APS) | Exact: `Arizona Public Service Company` | Arizona Public Service (AZ) | — |
 | El Paso Electric | Substring: `El Paso Electric` | El Paso Electric Company (NM) | TX data absent from EJL |
 | Southern Company | Exact: `Georgia Power`, `Alabama Power`, `Mississippi Power` | Georgia Power (GA) | Alabama Power and Mississippi Power absent from EJL |
+| NV Energy | Substring: `Nevada Power`, `Sierra Pacific Power` | — | **Both Nevada Power Company and Sierra Pacific Power Company absent from EJL — full data gap; disconnection cell is blank** |
+| Berkshire Hathaway Energy | Substring: `Nevada Power`, `Sierra Pacific Power`, `MidAmerican Energy`, `PacifiCorp`, `Pacific Power`, `Rocky Mountain Power` | MidAmerican Energy (IA/IL), PacifiCorp, Pacific Power, Rocky Mountain Power | NV Energy subs (Nevada Power, Sierra Pacific Power) absent from EJL |
 
 ### Electric Retail Service Territories (GIS)
 **Source:** Oak Ridge National Laboratory (ORNL) / U.S. Department of Energy (DOE), via HIFLD Open  
@@ -120,20 +128,22 @@ EJL disconnection data covers shutoffs for non-payment specifically.
 
 Electric power retail service territory polygons representing areas serviced by electric utilities responsible for the retail sale of electric power to local customers. Used to spatially define service territories for energy burden calculations.
 
-**Coverage audit results** (run 2026-05-24): All 34 expected operating subsidiaries across the 10 target holding companies matched at least one territory polygon. No gaps.
+**Coverage audit results** (run 2026-05-28): All 41 expected operating subsidiaries across the 12 target holding companies matched at least one territory polygon. No gaps. NV Energy's Nevada Power Co. + Sierra Pacific Power Co. polygons also roll up under the Berkshire Hathaway Energy target (Exelon-style overlap).
 
-| Holding Co | Subsidiaries matched | Customers in shapefile |
-|---|---|---|
-| Duke Energy | 6/6 | 8,204,861 |
-| PG&E | 1/1 | 5,604,453 |
-| Exelon (excl. ComEd) | 5/5 | 5,060,114 |
-| ComEd | 1/1 | 4,111,175 |
-| Southern Company | 3/3 | 4,431,047 |
-| American Electric Power | 8/8 | 4,418,432 |
-| Xcel Energy | 4/4 | 3,761,046 |
-| National Grid | 4/4 | 3,579,978 |
-| Arizona Public Service | 1/1 | 1,344,359 |
-| El Paso Electric | 1/1 | 455,303 |
+| Holding Co | Subsidiaries matched |
+|---|---|
+| Duke Energy | 6/6 |
+| PG&E | 1/1 |
+| Exelon (excl. ComEd) | 5/5 |
+| ComEd | 1/1 |
+| Southern Company | 3/3 |
+| American Electric Power | 8/8 |
+| Xcel Energy | 4/4 |
+| National Grid | 4/4 |
+| Arizona Public Service | 1/1 |
+| El Paso Electric | 1/1 |
+| NV Energy | 2/2 |
+| Berkshire Hathaway Energy | 4/4 (Nevada Power Co., Sierra Pacific Power Co., PacifiCorp, MidAmerican Energy) |
 
 Known caveats from the audit:
 - **AEP Texas customer count**: Both AEP Texas features have no customer count in the shapefile; will be sourced from EIA 861.
@@ -155,7 +165,7 @@ Census tract boundary polygons used for centroid-in-polygon assignment of tracts
 **Variables:** `avg_income`, `avg_electricity_cost`, `avg_gas_cost`, `avg_other_fuel_cost`, plus `hincp_valid_units`, `elep_valid_units`, `gasp_valid_units`, `fulp_valid_units` (per-component household counts used as weights)  
 **Geographic resolution:** Census tract × subpopulation (income band × tenure × building age × heating fuel)  
 **Temporal resolution:** 2022 (5-year ACS reference period)  
-**Coverage:** 34 target states  
+**Coverage:** 42 target states  
 **Local path:** `Cleaned_Data/doe/lead/[state]-census_tract-lead-2022.csv` (one file per state)  
 **Script:** `R/07_burden_estimates_2024.R`
 
@@ -167,7 +177,7 @@ Tract-level baseline energy burden data used as the 2022 starting point for forw
 **Variables:** `residential_revenue_usd`, `residential_customers` (combined to compute average annual residential bill = revenue ÷ customers)  
 **Geographic resolution:** Operating utility × state  
 **Temporal resolution:** Annual; 2022 and 2024 used  
-**Coverage:** 47 of 48 expected operating subsidiary × state combinations matched  
+**Coverage:** All 12 target holding companies matched at least one operating subsidiary × state combination (new 2026 entries: Nevada Power Co. + Sierra Pacific Power Co. for NV Energy; PacifiCorp + MidAmerican Energy Co. additional rollups for BHE)  
 **Local path:** `Cleaned_Data/eia/861/14-02-2026-eia-861-sales.csv`  
 **Script:** `R/07_burden_estimates_2024.R`
 
@@ -197,3 +207,7 @@ Used to compute the 2022→2024 gas-bill growth ratio per state. Applied multipl
 - **Profits — Xcel aggregation**: `Xcel Energy` does not appear as a value in the `Parent Company` column of the EPI profits data. Subsidiaries are matched by `Utility`-name substring across Northern States Power, Public Service Co. of Colorado, Southwestern Public Service, and any rows containing "Xcel".
 - **Profits — National Grid 2025 gap**: EPI does not report 2025 profit data for National Grid's US subsidiaries. 2021 ($438.6M) and 2024 ($443.6M) figures are available; `profit_2025_millions` and `profit_ratio_2024_2025` are NA for this utility.
 - **Profits — El Paso Electric gap**: El Paso Electric is not present in EPI's utility profits data. It has been privately held since 2020 (IIF acquisition) and does not file public financial disclosures.
+- **NV Energy / Berkshire Hathaway Energy overlap**: NV Energy is a trade name for two operating utilities — Nevada Power Co. (southern NV) and Sierra Pacific Power Co. (northern NV and a sliver of eastern CA). Both are wholly owned by Berkshire Hathaway Energy. CEO compensation and profits flow through BHE filings (Gregory Abel) since NV Energy does not file its own proxy; energy burden and customer counts are reported at the operating-utility level. Brandon Barkhuff is NV Energy's operating CEO but his compensation is not separately disclosed.
+- **Berkshire Hathaway Energy rollup**: BHE is a holding company ~92% owned by Berkshire Hathaway Inc., but it files its own SEC reports (10-K, 10-Q) because it has registered public debt. The BHE row in this analysis rolls up its US retail-distribution subsidiaries: NV Energy (Nevada Power + Sierra Pacific Power), PacifiCorp (DBAs Pacific Power in OR/WA/CA and Rocky Mountain Power in UT/WY/ID), and MidAmerican Energy (IA/IL/SD/NE — electric + IA-anchored gas distribution). Excluded from the BHE rollup: Northern Powergrid (UK distribution), BHE Pipeline Group, and BHE GT&S (interstate gas transmission, not retail distribution).
+- **NV Energy disconnections gap**: Neither Nevada Power Company nor Sierra Pacific Power Company appears in the Energy Justice Lab utility disconnection dashboard. The disconnections cell is blank for NV Energy. BHE's disconnection total reflects only MidAmerican (IA/IL) + PacifiCorp + Pacific Power + Rocky Mountain Power.
+- **PacifiCorp**: Single legal entity operating in OR, WA, CA, UT, WY, and ID under the trade names Pacific Power (OR/WA/CA) and Rocky Mountain Power (UT/WY/ID). Modeled as one subsidiary in this analysis with regex `^PACIFICORP$` on HIFLD NAME and substring matching on operating trade names elsewhere.

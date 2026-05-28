@@ -48,7 +48,8 @@ tract_path <- file.path(
   "cb_2022_us_tract_500k.shp"
 )
 
-# Target state FIPS codes (34 states from ACS collection)
+# Target state FIPS codes (42 states from ACS collection — 2026 expansion adds
+# NV, OR, WA, UT, WY, ID, IA, NE for NV Energy + PacifiCorp + MidAmerican)
 target_state_fips <- c(
   "01", # AL
   "05", # AR
@@ -59,6 +60,8 @@ target_state_fips <- c(
   "10", # DE
   "12", # FL
   "13", # GA
+  "19", # IA
+  "16", # ID
   "17", # IL
   "18", # IN
   "21", # KY
@@ -70,20 +73,26 @@ target_state_fips <- c(
   "28", # MS
   "37", # NC
   "38", # ND
+  "31", # NE
   "34", # NJ
   "35", # NM
+  "32", # NV
   "36", # NY
   "39", # OH
   "40", # OK
+  "41", # OR
   "42", # PA
   "44", # RI
   "45", # SC
   "46", # SD
   "47", # TN
   "48", # TX
+  "49", # UT
   "51", # VA
+  "53", # WA
   "55", # WI
-  "54"  # WV
+  "54", # WV
+  "56"  # WY
 )
 
 message("Loading census tract shapefile (filtering to 34 target states)...")

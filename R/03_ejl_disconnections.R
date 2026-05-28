@@ -31,13 +31,15 @@ target_utilities <- tibble(
     "American Electric Power", "ComEd", "Duke Energy",
     "Exelon", "National Grid", "PG&E",
     "Xcel Energy", "Arizona Public Service (APS)",
-    "El Paso Electric", "Southern Company"
+    "El Paso Electric", "Southern Company",
+    "NV Energy", "Berkshire Hathaway Energy"
   ),
   match_type = c(
     "substring", "exact", "substring",
     "exact", "exact", "exact",
     "substring", "exact",
-    "substring", "exact"
+    "substring", "exact",
+    "substring", "substring"
   ),
   match_values = list(
     # AEP: SWEPCO (Southwestern Electric Power) and PSO (Public Service Oklahoma) absent from EJL
@@ -57,7 +59,14 @@ target_utilities <- tibble(
     "Arizona Public Service Company",
     "El Paso Electric",
     # Southern Company: Alabama Power and Mississippi Power absent from EJL — gaps expected
-    c("Georgia Power", "Alabama Power", "Mississippi Power")
+    c("Georgia Power", "Alabama Power", "Mississippi Power"),
+    # NV Energy: both Nevada Power Company and Sierra Pacific Power Company absent from EJL
+    c("Nevada Power", "Sierra Pacific Power"),
+    # BHE: NV Energy subs absent from EJL; MidAmerican (Electric/Gas) + PacifiCorp + Pacific Power +
+    # Rocky Mountain Power present. Exclude IL "MidAmerican Energy Company" combined row (~134K customers,
+    # tiny relative to IA — included via "MidAmerican Energy" substring; small double-count noted)
+    c("Nevada Power", "Sierra Pacific Power",
+      "MidAmerican Energy", "PacifiCorp", "Pacific Power", "Rocky Mountain Power")
   ),
   match_description = c(
     "Substring match on AEP Texas, Appalachian Power (VA), Indiana Michigan Power (IN/MI), Kentucky Power Company, Ohio Power Company; SWEPCO and PSO absent from EJL",
@@ -69,7 +78,9 @@ target_utilities <- tibble(
     "Substring match on Xcel Energy (MN/CO), Northern States Power (WI/MI/ND/SD), Southwestern Public Service (NM); Xcel CO combined-customer row excluded globally",
     "Exact match: Arizona Public Service Company (AZ)",
     "Substring 'El Paso Electric' catches El Paso Electric Company (NM)",
-    "Exact match: Georgia Power (GA); Alabama Power and Mississippi Power absent from EJL — documented as gaps"
+    "Exact match: Georgia Power (GA); Alabama Power and Mississippi Power absent from EJL — documented as gaps",
+    "Substring search for Nevada Power / Sierra Pacific Power — neither operating subsidiary reports to EJL; documented as full gap",
+    "Substring match on MidAmerican Energy (IA/IL), PacifiCorp, Pacific Power, Rocky Mountain Power; NV Energy subs (Nevada Power, Sierra Pacific Power) absent from EJL — documented as gaps"
   )
 )
 

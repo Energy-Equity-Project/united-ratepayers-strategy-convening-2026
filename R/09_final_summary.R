@@ -2,7 +2,7 @@
 #
 # Joins CEO compensation, utility profits, energy burdens, and disconnections
 # with residential customer counts from EIA 861 (electric) and EIA 176 PUDL
-# (gas) into a single 10-row comparative table.
+# (gas) into a single 12-row comparative table.
 #
 # Outputs:
 #   outputs/<dd-mm-yyyy>-united-ratepayers-final-summary.csv
@@ -75,16 +75,21 @@ message("EIA 176 (PUDL): ", eia_176_path)
 eia_176 <- read.csv(eia_176_path, stringsAsFactors = FALSE) %>%
   filter(customer_class == "residential")
 
-# Gas-subsidiary mapping for the six combo IOUs that operate gas distribution.
+# Gas-subsidiary mapping for combo IOUs that operate gas distribution.
 # Verified against utility_name values in the PUDL EIA 176 2024 file.
+# NV Energy gas comes through Sierra Pacific Power Co (Reno/Sparks LDC; Nevada Power is
+# electric-only and Southwest Gas serves Las Vegas independently).
+# BHE rollup adds MidAmerican Energy gas (IA primary, plus IL/NE/SD).
 gas_targets <- tribble(
-  ~target_utility,        ~gas_name_regex,
-  "Duke Energy",          "^DUKE ENERGY OHIO$|^DUKE ENERGY KENTUCKY$|^PIEDMONT NATURAL GAS$",
-  "Exelon",               "^BGE$|^PECO ENERGY COMPANY$|^DELMARVA POWER AND LIGHT",
-  "National Grid",        "BOSTON GAS CO DBA NATIONAL GRID|KEYSPAN ENERGY DBA NATIONAL GRID|NIAGARA MOHAWK DBA NATIONAL GRID|NARRAGANSETT ELECCO DBA RIENERGY",
-  "PG&E",                 "^PACIFIC GAS$",
-  "Xcel Energy",          "^NORTHERN STATES POWER COMPANY$|^PUB SERVICE CO OF COLORADO$",
-  "Southern Company",     "^ATLANTA GAS LIGHT$|^NICOR GAS$|^VIRGINIA NAT GAS INC$|^CHATTANOOGA GAS CO$"
+  ~target_utility,             ~gas_name_regex,
+  "Duke Energy",               "^DUKE ENERGY OHIO$|^DUKE ENERGY KENTUCKY$|^PIEDMONT NATURAL GAS$",
+  "Exelon",                    "^BGE$|^PECO ENERGY COMPANY$|^DELMARVA POWER AND LIGHT",
+  "National Grid",             "BOSTON GAS CO DBA NATIONAL GRID|KEYSPAN ENERGY DBA NATIONAL GRID|NIAGARA MOHAWK DBA NATIONAL GRID|NARRAGANSETT ELECCO DBA RIENERGY",
+  "PG&E",                      "^PACIFIC GAS$",
+  "Xcel Energy",               "^NORTHERN STATES POWER COMPANY$|^PUB SERVICE CO OF COLORADO$",
+  "Southern Company",          "^ATLANTA GAS LIGHT$|^NICOR GAS$|^VIRGINIA NAT GAS INC$|^CHATTANOOGA GAS CO$",
+  "NV Energy",                 "^SIERRA PACIFIC POWER COMPANY$",
+  "Berkshire Hathaway Energy", "^SIERRA PACIFIC POWER COMPANY$|^MIDAMERICAN ENERGY COMPANY$"
 )
 
 gas_customers <- map_dfr(target_utilities, function(target) {
@@ -105,7 +110,8 @@ gas_customers <- map_dfr(target_utilities, function(target) {
 # Stable ordering by README target sequence
 target_order <- c(
   "American Electric Power", "ComEd", "Duke Energy", "Exelon", "National Grid",
-  "PG&E", "Xcel Energy", "Arizona Public Service", "El Paso Electric", "Southern Company"
+  "PG&E", "Xcel Energy", "Arizona Public Service", "El Paso Electric", "Southern Company",
+  "NV Energy", "Berkshire Hathaway Energy"
 )
 
 # CEO pay rank is computed against the full EPI universe (all utility CEOs in
@@ -162,9 +168,15 @@ final_summary <- tibble(target_utility = target_order) %>%
     shutoffs %>%
       transmute(
         target_utility,
+        # Sum across service types — script 03 already deduplicates the known
+        # overlap rows (PECO and Xcel CO "Electric and Gas Combined Customers"),
+        # so adding electric + combined here aggregates BHE's MidAmerican IL
+        # ("Electric and Gas") with MidAmerican IA / PacifiCorp ("Electric")
+        # without double-counting. For PG&E (combined-only) and most others
+        # one term is zero so the sum reduces to a single bucket.
         residential_customers_disconnected = case_when(
-          combined_disconnections > 0 ~ combined_disconnections,
-          electric_disconnections > 0 ~ electric_disconnections,
+          (electric_disconnections + combined_disconnections) > 0 ~
+            electric_disconnections + combined_disconnections,
           TRUE ~ NA_real_
         ),
         # Parse "YYYY-YYYY" or "YYYY-YYYY" range — the trailing year is the
@@ -290,7 +302,7 @@ methodology <- c(
   "",
   "Sources and definitions",
   "",
-  "Target utility — Ten investor-owned utilities defined in the project README.",
+  "Target utility — Twelve investor-owned utilities defined in the project README. NV Energy is modeled as an operating subsidiary of Berkshire Hathaway Energy (CEO comp shown at the BHE parent level via Gregory Abel — mirrors the APS / Pinnacle West precedent); Berkshire Hathaway Energy itself is a holding-company target whose financials roll up Nevada Power + Sierra Pacific Power + PacifiCorp + MidAmerican Energy (mirrors the Exelon multi-sub rollup pattern).",
   "",
   "CEO compensation — Most recent proxy-year total compensation from SEC DEF 14A filings via the EPI Executive Compensation database. Source: 24-05-2026-epi-exec-comp.csv. National Grid (UK-listed) and El Paso Electric (private since 2020) do not file US proxy statements, so values are NA.",
   "",
